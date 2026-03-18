@@ -4,3 +4,7 @@ spring:
     password: password
     url: jdbc:postgresql://localhost:5435/myappdb
     username: user
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
