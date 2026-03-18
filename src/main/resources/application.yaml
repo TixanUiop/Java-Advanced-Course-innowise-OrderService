@@ -2,4 +2,8 @@ spring:
   application:
     name: Order-Service
   profiles:
-    active: "local"
+    active: local
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    enabled: true
+
