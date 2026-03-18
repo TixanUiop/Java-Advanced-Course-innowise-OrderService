@@ -1,9 +1,9 @@
 spring:
   datasource:
+    url: jdbc:postgresql://localhost:5436/orderdb
+    username: order_user
+    password: order_password
     driver-class-name: org.postgresql.Driver
-    password: password
-    url: jdbc:postgresql://localhost:5435/myappdb
-    username: user
   jpa:
     show-sql: true
     hibernate:
