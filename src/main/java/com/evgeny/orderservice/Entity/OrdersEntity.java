@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "orders")
 public class OrdersEntity extends BaseEntity {
 
     @Id
@@ -28,5 +30,8 @@ public class OrdersEntity extends BaseEntity {
     private OrderStatus status;
 
     private boolean deleted;
+
+    @OneToMany(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+    List<OrderItemsEntity> orderItems;
 
 }

@@ -1,10 +1,7 @@
 package com.evgeny.orderservice.Entity;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 @EqualsAndHashCode(callSuper = true)
@@ -13,14 +10,20 @@ import lombok.*;
 @AllArgsConstructor
 @Data
 @Builder
+@Table(name = "order_items")
 public class OrderItemsEntity extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long orderId;
+    @ManyToOne
+    @JoinColumn(name = "item_id")
+    private ItemsEntity item;
 
-    private Long itemId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
+    private OrdersEntity order;
 
     private Integer quantity;
 }
