@@ -1,10 +1,10 @@
 package com.evgeny.orderservice.Entity;
 
+import com.evgeny.orderservice.Entity.Enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class OrdersEntity extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Long userId;
@@ -23,18 +23,10 @@ public class OrdersEntity extends BaseEntity {
     @Column(name = "total_price")
     private BigDecimal totalPrice;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "order_status")
+    private OrderStatus status;
 
     private boolean deleted;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-
-//    @Transient
-//    private UserDto user;
 
 }
