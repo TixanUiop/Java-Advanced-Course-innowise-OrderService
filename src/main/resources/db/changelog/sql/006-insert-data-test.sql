@@ -17,12 +17,12 @@ INSERT INTO orders (user_id, status, total_price, deleted, created_at, updated_a
 (2, 'Accepted', 800.00, FALSE, NOW(), NOW()),
 (3, 'Collect', 450.00, FALSE, NOW(), NOW()),
 (4, 'Sent', 220.00, FALSE, NOW(), NOW()),
-(5, 'Ready to receive', 70.00, FALSE, NOW(), NOW()),
+(5, 'ReadyToReceive', 70.00, FALSE, NOW(), NOW()),
 (6, 'Awaiting', 500.00, FALSE, NOW(), NOW()),
 (7, 'Accepted', 300.00, FALSE, NOW(), NOW()),
 (8, 'Collect', 200.00, FALSE, NOW(), NOW()),
 (9, 'Sent', 90.00, FALSE, NOW(), NOW()),
-(10, 'Ready to receive', 180.00, FALSE, NOW(), NOW());
+(10, 'ReadyToReceive', 180.00, FALSE, NOW(), NOW());
 
 -- changeset evgeny:13
 INSERT INTO order_items (order_id, item_id, quantity, created_at, updated_at) VALUES

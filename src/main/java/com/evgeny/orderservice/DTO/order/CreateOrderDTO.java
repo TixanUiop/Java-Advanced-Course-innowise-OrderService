@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Builder
 @Data
@@ -22,4 +23,6 @@ public class CreateOrderDTO {
     private OrderStatus status;
 
     private boolean deleted;
+
+    private List<CreateOrderItemDTO> orderItems;
 }

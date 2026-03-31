@@ -27,7 +27,7 @@ public class OrdersEntity extends BaseEntity {
     private BigDecimal totalPrice;
 
     @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "order_status")
+    @Column(name = "status")
     private OrderStatus status;
 
     private boolean deleted;
