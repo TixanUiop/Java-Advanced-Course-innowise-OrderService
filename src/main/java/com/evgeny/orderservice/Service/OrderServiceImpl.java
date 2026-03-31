@@ -44,10 +44,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public FullOrderDTO getOrderById(Long id) {
 
-        //TODO FIX: loop into json parser for collection
         OrdersEntity ordersEntity = ordersRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with id " + id));
-
 
         return orderMapper.toFullOrderDTOFromEntity(ordersEntity);
 

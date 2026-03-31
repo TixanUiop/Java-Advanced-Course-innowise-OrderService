@@ -27,5 +27,5 @@ public class FullOrderDTO {
 
     private boolean deleted;
 
-    List<OrderItemsEntity> orderItems;
+    List<OrderItemsDTO> orderItems;
 }

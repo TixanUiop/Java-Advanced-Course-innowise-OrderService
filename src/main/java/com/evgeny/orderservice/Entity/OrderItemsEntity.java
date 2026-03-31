@@ -4,13 +4,14 @@ package com.evgeny.orderservice.Entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-@EqualsAndHashCode(callSuper = true)
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 @Builder
 @Table(name = "order_items")
+@ToString(exclude = "order")
+@EqualsAndHashCode(exclude = "order")
 public class OrderItemsEntity extends BaseEntity {
 
     @Id
@@ -25,5 +26,5 @@ public class OrderItemsEntity extends BaseEntity {
     @JoinColumn(name = "order_id")
     private OrdersEntity order;
 
-    private Integer quantity;
+    private Long quantity;
 }

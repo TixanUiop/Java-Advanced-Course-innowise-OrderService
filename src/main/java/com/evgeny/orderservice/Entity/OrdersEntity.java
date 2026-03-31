@@ -7,9 +7,10 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
+@ToString(exclude = "orderItems")
+@EqualsAndHashCode(exclude = "orderItems")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

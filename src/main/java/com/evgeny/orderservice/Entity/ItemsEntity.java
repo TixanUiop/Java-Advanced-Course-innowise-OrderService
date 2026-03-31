@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -23,6 +22,6 @@ public class ItemsEntity extends BaseEntity {
 
     private BigDecimal price;
 
-    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<OrderItemsEntity> orderItemsEntityList;
+//    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+//    List<OrderItemsEntity> orderItemsEntityList;
 }
