@@ -22,8 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +39,11 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public FullOrderDTO createOrder(CreateOrderDTO dto) {
 
+        if (dto.getOrderItems() == null || dto.getOrderItems().isEmpty()) {
+            throw new RuntimeException("OrderItems cannot be empty");
+        }
+
+
         OrdersEntity orderEntity = OrdersEntity.builder()
                 .userId(dto.getUserId())
                 .status(dto.getStatus())
@@ -49,6 +56,9 @@ public class OrderServiceImpl implements OrderService {
                             .findById(itemDto.getProductId())
                             .orElseThrow(() -> new RuntimeException("Product not found with id "
                                     + itemDto.getProductId()));
+
+                    if (itemDto.getQuantity() <= 0)
+                        throw new RuntimeException("Quantity must be > 0");
 
                     return OrderItemsEntity.builder()
                             .item(product)
@@ -85,7 +95,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Page<FullOrderDTO> getOrdersFiltered(List<OrderStatus> statuses, LocalDateTime from, LocalDateTime to, int page, int size) {
         Specification<OrdersEntity> spec = Specification
+
                 .where(OrderSpecifications.statusIn(statuses))
+                .and(OrderSpecifications.notDeleted())
                 .and(OrderSpecifications.createdAfter(from))
                 .and(OrderSpecifications.createdBefore(to));
 
@@ -112,11 +124,13 @@ public class OrderServiceImpl implements OrderService {
         OrdersEntity ordersEntity = ordersRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with id " + id));
 
+        if (update.getOrderItems() == null || update.getOrderItems().isEmpty()) {
+            throw new RuntimeException("Order must contain at least one item");
+        }
 
         ordersEntity.setStatus(update.getStatus());
         ordersEntity.setDeleted(update.isDeleted());
         ordersEntity.setUpdatedAt(LocalDateTime.now());
-        ordersEntity.setTotalPrice(update.getTotalPrice());
 
         List<OrderItemsEntity> updatedItems = update.getOrderItems().stream()
                 .map(dto -> {
@@ -135,7 +149,11 @@ public class OrderServiceImpl implements OrderService {
                 })
                 .toList();
 
-        ordersEntity.getOrderItems().clear();
+        if (ordersEntity.getOrderItems() == null) {
+            ordersEntity.setOrderItems(new ArrayList<>());
+        } else {
+            ordersEntity.getOrderItems().clear();
+        }
         ordersEntity.getOrderItems().addAll(updatedItems);
 
         BigDecimal totalPrice = updatedItems.stream()
