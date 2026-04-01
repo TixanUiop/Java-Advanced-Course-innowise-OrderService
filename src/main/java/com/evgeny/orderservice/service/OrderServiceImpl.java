@@ -121,7 +121,7 @@ public class OrderServiceImpl implements OrderService {
     public FullOrderDTO updateOrder(Long id, FullOrderDTO update) {
 
         OrdersEntity ordersEntity = ordersRepository.findById(id)
-                .orElseThrow(() -> new InvalidOrderException("Order not found with id " + id));
+                .orElseThrow(() -> new OrderNotFoundException("Order not found with id " + id));
 
         if (update.getOrderItems() == null || update.getOrderItems().isEmpty()) {
             throw new InvalidOrderException("Order must contain at least one item");

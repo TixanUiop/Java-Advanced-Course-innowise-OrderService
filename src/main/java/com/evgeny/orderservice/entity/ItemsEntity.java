@@ -22,6 +22,4 @@ public class ItemsEntity extends BaseEntity {
 
     private BigDecimal price;
 
-//    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
-//    List<OrderItemsEntity> orderItemsEntityList;
 }
