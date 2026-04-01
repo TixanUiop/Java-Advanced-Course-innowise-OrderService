@@ -53,12 +53,12 @@ public class OrdersController {
         return ordersService.getOrdersFiltered(statuses, fromDate, toDate, page, size);
     }
 
-    @PutMapping("/{id}")
-    public FullOrderDTO updateOrder(@PathVariable Long id, @RequestBody OrdersEntity updatedOrder) {
+    @PutMapping("/update/{id}")
+    public FullOrderDTO updateOrder(@PathVariable Long id, @RequestBody FullOrderDTO updatedOrder) {
         return ordersService.updateOrder(id, updatedOrder);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public void softDeleteOrder(@PathVariable Long id) {
         ordersService.softDeleteOrder(id);
     }

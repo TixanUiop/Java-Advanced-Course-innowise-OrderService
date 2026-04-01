@@ -12,7 +12,7 @@ public class OrderSpecifications {
     public static Specification<OrdersEntity> statusIn(List<OrderStatus> statuses) {
 
         return (root, query, criteriaBuilder) -> {
-            if (statuses != null || statuses.isEmpty()) return null;
+            if (statuses == null || statuses.isEmpty()) return null;
 
             return root.get("status").in(statuses);
         };
@@ -31,6 +31,5 @@ public class OrderSpecifications {
             return cb.lessThanOrEqualTo(root.get("createdAt"), to);
         };
     }
-
 
 }

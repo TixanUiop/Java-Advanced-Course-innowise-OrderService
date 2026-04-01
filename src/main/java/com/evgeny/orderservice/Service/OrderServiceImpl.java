@@ -107,28 +107,56 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public FullOrderDTO updateOrder(Long id, OrdersEntity update) {
-        FullOrderDTO orderById = getOrderById(id);
+    public FullOrderDTO updateOrder(Long id, FullOrderDTO update) {
 
-        OrdersEntity existing = orderMapper.toOrdersEntityFromFullOrderDTO(orderById);
+        OrdersEntity ordersEntity = ordersRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found with id " + id));
 
-        existing.setStatus(update.getStatus());
-        existing.setTotalPrice(update.getTotalPrice());
-        existing.setDeleted(update.isDeleted());
-        existing.setOrderItems(update.getOrderItems());
 
-        OrdersEntity save = ordersRepository.save(existing);
+        ordersEntity.setStatus(update.getStatus());
+        ordersEntity.setDeleted(update.isDeleted());
+        ordersEntity.setUpdatedAt(LocalDateTime.now());
+        ordersEntity.setTotalPrice(update.getTotalPrice());
 
-        return orderMapper.toFullOrderDTOFromEntity(save);
+        List<OrderItemsEntity> updatedItems = update.getOrderItems().stream()
+                .map(dto -> {
+                    OrderItemsEntity item = new OrderItemsEntity();
+
+                    item.setId(dto.getId());
+                    item.setQuantity(dto.getQuantity());
+
+                    ItemsEntity product = itemsRepository.findById(dto.getProductId())
+                            .orElseThrow(() -> new RuntimeException("Item not found"));
+
+                    item.setItem(product);
+                    item.setOrder(ordersEntity);
+
+                    return item;
+                })
+                .toList();
+
+        ordersEntity.getOrderItems().clear();
+        ordersEntity.getOrderItems().addAll(updatedItems);
+
+        BigDecimal totalPrice = updatedItems.stream()
+                .map(i -> i.getItem().getPrice()
+                        .multiply(BigDecimal.valueOf(i.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        ordersEntity.setTotalPrice(totalPrice);
+
+        OrdersEntity saved = ordersRepository.save(ordersEntity);
+        return orderMapper.toFullOrderDTOFromEntity(saved);
     }
 
     @Transactional
     public void softDeleteOrder(Long id) {
-        FullOrderDTO orderById = getOrderById(id);
-        orderById.setDeleted(true);
 
-        OrdersEntity del = orderMapper.toOrdersEntityFromFullOrderDTO(orderById);
+        OrdersEntity order = ordersRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found with id " + id));
 
-        ordersRepository.save(del);
+        order.setDeleted(true);
+
+        ordersRepository.save(order);
     }
 }
