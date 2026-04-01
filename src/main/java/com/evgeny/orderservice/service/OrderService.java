@@ -1,9 +1,9 @@
-package com.evgeny.orderservice.Service;
+package com.evgeny.orderservice.service;
 
-import com.evgeny.orderservice.DTO.order.CreateOrderDTO;
-import com.evgeny.orderservice.DTO.order.FullOrderDTO;
-import com.evgeny.orderservice.DTO.order.OrdersSummaryDTO;
-import com.evgeny.orderservice.Entity.Enums.OrderStatus;
+import com.evgeny.orderservice.dto.order.CreateOrderDTO;
+import com.evgeny.orderservice.dto.order.FullOrderDTO;
+import com.evgeny.orderservice.dto.order.OrdersSummaryDTO;
+import com.evgeny.orderservice.entity.Enums.OrderStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 

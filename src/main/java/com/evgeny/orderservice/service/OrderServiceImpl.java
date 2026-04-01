@@ -1,16 +1,19 @@
-package com.evgeny.orderservice.Service;
+package com.evgeny.orderservice.service;
 
-import com.evgeny.orderservice.DTO.order.CreateOrderDTO;
-import com.evgeny.orderservice.DTO.order.FullOrderDTO;
-import com.evgeny.orderservice.DTO.order.OrdersSummaryDTO;
-import com.evgeny.orderservice.Entity.Enums.OrderStatus;
-import com.evgeny.orderservice.Entity.ItemsEntity;
-import com.evgeny.orderservice.Entity.OrderItemsEntity;
-import com.evgeny.orderservice.Entity.OrdersEntity;
-import com.evgeny.orderservice.Mapper.order.OrderMapper;
-import com.evgeny.orderservice.Repository.ItemsRepository;
-import com.evgeny.orderservice.Repository.OrdersRepository;
-import com.evgeny.orderservice.Specification.OrderSpecifications;
+import com.evgeny.orderservice.dto.order.CreateOrderDTO;
+import com.evgeny.orderservice.dto.order.FullOrderDTO;
+import com.evgeny.orderservice.dto.order.OrdersSummaryDTO;
+import com.evgeny.orderservice.entity.Enums.OrderStatus;
+import com.evgeny.orderservice.entity.ItemsEntity;
+import com.evgeny.orderservice.entity.OrderItemsEntity;
+import com.evgeny.orderservice.entity.OrdersEntity;
+import com.evgeny.orderservice.exception.InvalidOrderException;
+import com.evgeny.orderservice.exception.OrderNotFoundException;
+import com.evgeny.orderservice.exception.ProductNotFoundException;
+import com.evgeny.orderservice.mapper.order.OrderMapper;
+import com.evgeny.orderservice.repository.ItemsRepository;
+import com.evgeny.orderservice.repository.OrdersRepository;
+import com.evgeny.orderservice.specification.OrderSpecifications;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -40,7 +43,7 @@ public class OrderServiceImpl implements OrderService {
     public FullOrderDTO createOrder(CreateOrderDTO dto) {
 
         if (dto.getOrderItems() == null || dto.getOrderItems().isEmpty()) {
-            throw new RuntimeException("OrderItems cannot be empty");
+            throw new InvalidOrderException("OrderItems cannot be empty");
         }
 
 
@@ -54,11 +57,10 @@ public class OrderServiceImpl implements OrderService {
                 .map(itemDto -> {
                     ItemsEntity product = itemsRepository
                             .findById(itemDto.getProductId())
-                            .orElseThrow(() -> new RuntimeException("Product not found with id "
-                                    + itemDto.getProductId()));
+                            .orElseThrow(() ->new ProductNotFoundException(itemDto.getProductId()));
 
                     if (itemDto.getQuantity() <= 0)
-                        throw new RuntimeException("Quantity must be > 0");
+                        throw new InvalidOrderException("Quantity must be greater than zero: " + itemDto.getQuantity());
 
                     return OrderItemsEntity.builder()
                             .item(product)
@@ -86,7 +88,7 @@ public class OrderServiceImpl implements OrderService {
     public FullOrderDTO getOrderById(Long id) {
 
         OrdersEntity ordersEntity = ordersRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found with id " + id));
+                .orElseThrow(() -> new OrderNotFoundException(id));
 
         return orderMapper.toFullOrderDTOFromEntity(ordersEntity);
 
@@ -103,10 +105,7 @@ public class OrderServiceImpl implements OrderService {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<OrdersEntity> all = ordersRepository.findAll(spec, pageable);
-        Page<FullOrderDTO> map = all.map(orderMapper::toFullOrderDTOFromEntity);
-
-
-        return map;
+        return all.map(orderMapper::toFullOrderDTOFromEntity);
     }
 
     @Override
@@ -122,10 +121,10 @@ public class OrderServiceImpl implements OrderService {
     public FullOrderDTO updateOrder(Long id, FullOrderDTO update) {
 
         OrdersEntity ordersEntity = ordersRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found with id " + id));
+                .orElseThrow(() -> new InvalidOrderException("Order not found with id " + id));
 
         if (update.getOrderItems() == null || update.getOrderItems().isEmpty()) {
-            throw new RuntimeException("Order must contain at least one item");
+            throw new InvalidOrderException("Order must contain at least one item");
         }
 
         ordersEntity.setStatus(update.getStatus());
@@ -140,7 +139,7 @@ public class OrderServiceImpl implements OrderService {
                     item.setQuantity(dto.getQuantity());
 
                     ItemsEntity product = itemsRepository.findById(dto.getProductId())
-                            .orElseThrow(() -> new RuntimeException("Item not found"));
+                            .orElseThrow(() -> new ProductNotFoundException(dto.getProductId()));
 
                     item.setItem(product);
                     item.setOrder(ordersEntity);
@@ -171,7 +170,7 @@ public class OrderServiceImpl implements OrderService {
     public void softDeleteOrder(Long id) {
 
         OrdersEntity order = ordersRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found with id " + id));
+                .orElseThrow(() -> new OrderNotFoundException(id));
 
         order.setDeleted(true);
 

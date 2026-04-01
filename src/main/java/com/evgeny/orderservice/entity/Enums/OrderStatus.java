@@ -1,4 +1,4 @@
-package com.evgeny.orderservice.Entity.Enums;
+package com.evgeny.orderservice.entity.Enums;
 
 public enum OrderStatus {
     Awaiting("Awaiting"),

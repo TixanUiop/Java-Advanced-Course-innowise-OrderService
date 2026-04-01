@@ -1,6 +1,6 @@
-package com.evgeny.orderservice.Entity;
+package com.evgeny.orderservice.entity;
 
-import com.evgeny.orderservice.Entity.Enums.OrderStatus;
+import com.evgeny.orderservice.entity.Enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

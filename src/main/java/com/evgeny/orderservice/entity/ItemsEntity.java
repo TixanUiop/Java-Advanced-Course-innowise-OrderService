@@ -1,4 +1,4 @@
-package com.evgeny.orderservice.Entity;
+package com.evgeny.orderservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

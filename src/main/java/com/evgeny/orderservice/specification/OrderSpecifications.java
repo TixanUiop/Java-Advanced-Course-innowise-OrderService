@@ -1,7 +1,7 @@
-package com.evgeny.orderservice.Specification;
+package com.evgeny.orderservice.specification;
 
-import com.evgeny.orderservice.Entity.Enums.OrderStatus;
-import com.evgeny.orderservice.Entity.OrdersEntity;
+import com.evgeny.orderservice.entity.Enums.OrderStatus;
+import com.evgeny.orderservice.entity.OrdersEntity;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;

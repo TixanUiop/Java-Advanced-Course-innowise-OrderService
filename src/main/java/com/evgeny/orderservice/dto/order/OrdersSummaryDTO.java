@@ -1,6 +1,6 @@
-package com.evgeny.orderservice.DTO.order;
+package com.evgeny.orderservice.dto.order;
 
-import com.evgeny.orderservice.Entity.Enums.OrderStatus;
+import com.evgeny.orderservice.entity.Enums.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

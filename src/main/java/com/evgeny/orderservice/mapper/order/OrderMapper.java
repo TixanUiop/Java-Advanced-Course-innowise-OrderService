@@ -1,12 +1,12 @@
-package com.evgeny.orderservice.Mapper.order;
+package com.evgeny.orderservice.mapper.order;
 
 
-import com.evgeny.orderservice.DTO.order.CreateOrderDTO;
-import com.evgeny.orderservice.DTO.order.FullOrderDTO;
-import com.evgeny.orderservice.DTO.order.OrderItemsDTO;
-import com.evgeny.orderservice.DTO.order.OrdersSummaryDTO;
-import com.evgeny.orderservice.Entity.OrderItemsEntity;
-import com.evgeny.orderservice.Entity.OrdersEntity;
+import com.evgeny.orderservice.dto.order.CreateOrderDTO;
+import com.evgeny.orderservice.dto.order.FullOrderDTO;
+import com.evgeny.orderservice.dto.order.OrderItemsDTO;
+import com.evgeny.orderservice.dto.order.OrdersSummaryDTO;
+import com.evgeny.orderservice.entity.OrderItemsEntity;
+import com.evgeny.orderservice.entity.OrdersEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
