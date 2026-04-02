@@ -5,6 +5,8 @@ import com.evgeny.orderservice.dto.orderItems.FullOrderItemDTO;
 import com.evgeny.orderservice.entity.ItemsEntity;
 import com.evgeny.orderservice.entity.OrderItemsEntity;
 import com.evgeny.orderservice.entity.OrdersEntity;
+import com.evgeny.orderservice.exception.InvalidOrderItemsException;
+import com.evgeny.orderservice.exception.OrderItemsNotFoundException;
 import com.evgeny.orderservice.exception.OrderNotFoundException;
 import com.evgeny.orderservice.exception.ProductNotFoundException;
 import com.evgeny.orderservice.mapper.orderItems.OrderItemMapper;
@@ -48,11 +50,11 @@ public class OrderItemsServiceImpl implements OrderItemsService {
 
 
         if (dto.getQuantity() == null || dto.getQuantity() <= 0) {
-            throw new IllegalArgumentException("Quantity must be greater than zero");
+            throw new InvalidOrderItemsException("Quantity must be greater than zero");
         }
 
         if (itemEntity.getPrice() == null || itemEntity.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalStateException("Invalid product price for item: " + itemEntity.getId());
+            throw new InvalidOrderItemsException("Invalid product price for item: " + itemEntity.getId());
         }
 
         OrderItemsEntity orderItem = OrderItemsEntity.builder()
@@ -81,24 +83,24 @@ public class OrderItemsServiceImpl implements OrderItemsService {
     @Transactional
     public FullOrderItemDTO update(Long id, FullOrderItemDTO dto) {
         OrderItemsEntity entity = orderItemsRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("OrderItem not found: " + id));
+                .orElseThrow(() -> new OrderItemsNotFoundException("OrderItem not found: " + id));
 
         entity.setQuantity(dto.getQuantity());
 
         if (dto.getOrderId() != null) {
             OrdersEntity orderEntity = ordersRepository.findById(dto.getOrderId())
-                    .orElseThrow(() -> new RuntimeException("Order not found: " + dto.getOrderId()));
+                    .orElseThrow(() -> new OrderNotFoundException("Order not found: " + dto.getOrderId()));
             entity.setOrder(orderEntity);
         }
 
         if (dto.getItemId() != null) {
             ItemsEntity itemEntity = itemsRepository.findById(dto.getItemId())
-                    .orElseThrow(() -> new RuntimeException("Item not found: " + dto.getItemId()));
+                    .orElseThrow(() -> new ProductNotFoundException("Item not found: " + dto.getItemId()));
             entity.setItem(itemEntity);
         }
 
         if (dto.getQuantity() == null || dto.getQuantity() <= 0) {
-            throw new IllegalArgumentException("Quantity must be greater than zero");
+            throw new InvalidOrderItemsException("Quantity must be greater than zero");
         }
 
         orderItemsRepository.save(entity);
@@ -109,7 +111,7 @@ public class OrderItemsServiceImpl implements OrderItemsService {
     @Transactional
     public void delete(Long id) {
         OrderItemsEntity entity = orderItemsRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("OrderItem not found: " + id));
+                .orElseThrow(() -> new OrderItemsNotFoundException("OrderItem not found: " + id));
         entity.setDeleted(true);
         orderItemsRepository.save(entity);
     }
