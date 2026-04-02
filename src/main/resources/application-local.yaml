@@ -8,3 +8,5 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: none
+jwt:
+  secret: ${JWT_SECRET:com-innowise-authentication-service-secret-key}

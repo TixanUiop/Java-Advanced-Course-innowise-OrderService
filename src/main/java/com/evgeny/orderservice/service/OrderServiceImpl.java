@@ -3,6 +3,7 @@ package com.evgeny.orderservice.service;
 import com.evgeny.orderservice.dto.order.CreateOrderDTO;
 import com.evgeny.orderservice.dto.order.FullOrderDTO;
 import com.evgeny.orderservice.dto.order.OrdersSummaryDTO;
+import com.evgeny.orderservice.dto.user.UserDTO;
 import com.evgeny.orderservice.entity.Enums.OrderStatus;
 import com.evgeny.orderservice.entity.ItemsEntity;
 import com.evgeny.orderservice.entity.OrderItemsEntity;
@@ -37,6 +38,9 @@ public class OrderServiceImpl implements OrderService {
     private final OrdersRepository ordersRepository;
     private final OrderMapper orderMapper;
     private final ItemsRepository itemsRepository;
+    private final UserClientService userClientService;
+
+
 
     @Override
     @Transactional
@@ -66,6 +70,7 @@ public class OrderServiceImpl implements OrderService {
                             .item(product)
                             .quantity(itemDto.getQuantity())
                             .order(orderEntity)
+                            .deleted(false)
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -81,16 +86,16 @@ public class OrderServiceImpl implements OrderService {
 
         ordersRepository.save(orderEntity);
 
-        return orderMapper.toFullOrderDTOFromEntity(orderEntity);
+        return enrichWithUser(orderEntity);
     }
 
     @Override
     public FullOrderDTO getOrderById(Long id) {
 
-        OrdersEntity ordersEntity = ordersRepository.findById(id)
+        OrdersEntity entity = ordersRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException(id));
 
-        return orderMapper.toFullOrderDTOFromEntity(ordersEntity);
+        return enrichWithUser(entity);
 
     }
 
@@ -105,7 +110,8 @@ public class OrderServiceImpl implements OrderService {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<OrdersEntity> all = ordersRepository.findAll(spec, pageable);
-        return all.map(orderMapper::toFullOrderDTOFromEntity);
+
+        return all.map(this::enrichWithUser);
     }
 
     @Override
@@ -163,7 +169,7 @@ public class OrderServiceImpl implements OrderService {
         ordersEntity.setTotalPrice(totalPrice);
 
         OrdersEntity saved = ordersRepository.save(ordersEntity);
-        return orderMapper.toFullOrderDTOFromEntity(saved);
+        return enrichWithUser(saved);
     }
 
     @Transactional
@@ -175,5 +181,14 @@ public class OrderServiceImpl implements OrderService {
         order.setDeleted(true);
 
         ordersRepository.save(order);
+    }
+
+    private FullOrderDTO enrichWithUser(OrdersEntity entity) {
+        FullOrderDTO dto = orderMapper.toFullOrderDTOFromEntity(entity);
+
+        UserDTO user = userClientService.getUserById(entity.getUserId());
+        dto.setUser(user);
+
+        return dto;
     }
 }

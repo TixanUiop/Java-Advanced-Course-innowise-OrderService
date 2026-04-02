@@ -1,6 +1,7 @@
 package com.evgeny.orderservice.dto.order;
 
 
+import com.evgeny.orderservice.dto.user.UserDTO;
 import com.evgeny.orderservice.entity.Enums.OrderStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -34,4 +35,6 @@ public class FullOrderDTO {
 
     @NotEmpty(message = "Order must contain items")
     private List<@Valid OrderItemsDTO> orderItems;
+
+    private UserDTO user;
 }

@@ -13,7 +13,9 @@ import com.evgeny.orderservice.mapper.orderItems.OrderItemMapper;
 import com.evgeny.orderservice.repository.ItemsRepository;
 import com.evgeny.orderservice.repository.OrderItemsRepository;
 import com.evgeny.orderservice.repository.OrdersRepository;
+import com.evgeny.orderservice.security.JwtUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,8 +44,19 @@ public class OrderItemsServiceImpl implements OrderItemsService {
     @Transactional
     public FullOrderItemDTO create(CreateOrderItemDTO dto) {
 
+
         OrdersEntity orderEntity = ordersRepository.findById(dto.getOrderId())
                 .orElseThrow(() -> new OrderNotFoundException(dto.getOrderId()));
+
+        JwtUserDetails user = (JwtUserDetails) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        Long currentUserId = user.getId();
+
+        if (!orderEntity.getUserId().equals(currentUserId)) {
+            throw new RuntimeException("You cannot add items to someone else's order");
+        }
 
         ItemsEntity itemEntity = itemsRepository.findById(dto.getItemId())
                 .orElseThrow(() -> new ProductNotFoundException(dto.getItemId()));
@@ -82,10 +95,22 @@ public class OrderItemsServiceImpl implements OrderItemsService {
     @Override
     @Transactional
     public FullOrderItemDTO update(Long id, FullOrderItemDTO dto) {
+
         OrderItemsEntity entity = orderItemsRepository.findById(id)
                 .orElseThrow(() -> new OrderItemsNotFoundException("OrderItem not found: " + id));
 
         entity.setQuantity(dto.getQuantity());
+
+        JwtUserDetails user = (JwtUserDetails) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        Long currentUserId = user.getId();
+        String role = user.getRole();
+
+        if (!entity.getOrder().getUserId().equals(currentUserId) && !role.equals("ADMIN")) {
+            throw new RuntimeException("Access denied");
+        }
 
         if (dto.getOrderId() != null) {
             OrdersEntity orderEntity = ordersRepository.findById(dto.getOrderId())
@@ -110,8 +135,28 @@ public class OrderItemsServiceImpl implements OrderItemsService {
     @Override
     @Transactional
     public void delete(Long id) {
+
         OrderItemsEntity entity = orderItemsRepository.findById(id)
                 .orElseThrow(() -> new OrderItemsNotFoundException("OrderItem not found: " + id));
+
+        OrdersEntity order = entity.getOrder();
+
+        JwtUserDetails user = (JwtUserDetails) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        Long currentUserId = user.getId();
+
+        String role = user.getRole();
+
+        if (!order.getUserId().equals(currentUserId) && !role.equals("ADMIN")) {
+            throw new RuntimeException("Access denied");
+        }
+
+        if (!order.getUserId().equals(currentUserId)) {
+            throw new RuntimeException("You cannot delete someone else's order");
+        }
+
         entity.setDeleted(true);
         orderItemsRepository.save(entity);
     }

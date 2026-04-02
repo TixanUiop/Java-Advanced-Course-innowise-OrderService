@@ -2,6 +2,7 @@ package com.evgeny.orderservice.dto.orderItems;
 
 import com.evgeny.orderservice.dto.item.FullItemsDTO;
 import com.evgeny.orderservice.dto.order.FullOrderDTO;
+import com.evgeny.orderservice.dto.user.UserDTO;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 
@@ -29,4 +30,6 @@ public class FullOrderItemDTO {
     private String productName;
 
     private Boolean deleted;
+
+    private UserDTO user;
 }

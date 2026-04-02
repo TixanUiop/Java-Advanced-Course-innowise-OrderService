@@ -11,6 +11,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,21 +29,25 @@ public class OrdersController {
         this.ordersService = ordersService;
     }
 
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #order.userId")
     @PostMapping("/create")
     public FullOrderDTO createOrder(@Valid @RequestBody CreateOrderDTO order) {
         return ordersService.createOrder(order);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @orderSecurity.isOrderOwner(#id, principal.id)")
     @GetMapping("/{id}")
     public FullOrderDTO getOrderById(@PathVariable @Positive Long id) {
         return ordersService.getOrderById(id);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or principal.id == #userId")
     @GetMapping("/user/{userId}")
     public List<OrdersSummaryDTO> getOrdersByUserId(@PathVariable @Positive Long userId) {
         return ordersService.getOrdersByUserId(userId);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public Page<FullOrderDTO> getOrdersFiltered(
             @RequestParam(required = false) List<OrderStatus> statuses,
@@ -57,11 +62,13 @@ public class OrdersController {
         return ordersService.getOrdersFiltered(statuses, fromDate, toDate, page, size);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update/{id}")
     public FullOrderDTO updateOrder(@PathVariable Long id, @Valid @RequestBody FullOrderDTO updatedOrder) {
         return ordersService.updateOrder(id, updatedOrder);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/{id}")
     public void softDeleteOrder(@PathVariable @Positive Long id) {
         ordersService.softDeleteOrder(id);
