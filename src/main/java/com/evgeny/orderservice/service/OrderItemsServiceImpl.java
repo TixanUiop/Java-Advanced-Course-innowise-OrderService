@@ -1,0 +1,116 @@
+package com.evgeny.orderservice.service;
+
+import com.evgeny.orderservice.dto.orderItems.CreateOrderItemDTO;
+import com.evgeny.orderservice.dto.orderItems.FullOrderItemDTO;
+import com.evgeny.orderservice.entity.ItemsEntity;
+import com.evgeny.orderservice.entity.OrderItemsEntity;
+import com.evgeny.orderservice.entity.OrdersEntity;
+import com.evgeny.orderservice.exception.OrderNotFoundException;
+import com.evgeny.orderservice.exception.ProductNotFoundException;
+import com.evgeny.orderservice.mapper.orderItems.OrderItemMapper;
+import com.evgeny.orderservice.repository.ItemsRepository;
+import com.evgeny.orderservice.repository.OrderItemsRepository;
+import com.evgeny.orderservice.repository.OrdersRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class OrderItemsServiceImpl implements OrderItemsService {
+
+    private final OrderItemsRepository orderItemsRepository;
+    private final OrdersRepository ordersRepository;
+    private final ItemsRepository itemsRepository;
+    private final OrderItemMapper orderItemMapper;
+
+
+    @Override
+    public FullOrderItemDTO getById(Long id) {
+        OrderItemsEntity entity = orderItemsRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("OrderItem not found: " + id));
+
+        return orderItemMapper.toDto(entity);
+    }
+
+    @Override
+    @Transactional
+    public FullOrderItemDTO create(CreateOrderItemDTO dto) {
+
+        OrdersEntity orderEntity = ordersRepository.findById(dto.getOrderId())
+                .orElseThrow(() -> new OrderNotFoundException(dto.getOrderId()));
+
+        ItemsEntity itemEntity = itemsRepository.findById(dto.getItemId())
+                .orElseThrow(() -> new ProductNotFoundException(dto.getItemId()));
+
+
+        if (dto.getQuantity() == null || dto.getQuantity() <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than zero");
+        }
+
+        if (itemEntity.getPrice() == null || itemEntity.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalStateException("Invalid product price for item: " + itemEntity.getId());
+        }
+
+        OrderItemsEntity orderItem = OrderItemsEntity.builder()
+                .order(orderEntity)
+                .item(itemEntity)
+                .quantity(dto.getQuantity())
+                .deleted(false)
+                .build();
+
+        orderItemsRepository.save(orderItem);
+
+        return orderItemMapper.toDto(orderItem);
+    }
+
+
+
+    @Override
+    public List<FullOrderItemDTO> getAll() {
+        return orderItemsRepository.findAll().stream()
+                .filter(e -> !e.getDeleted())
+                .map(orderItemMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public FullOrderItemDTO update(Long id, FullOrderItemDTO dto) {
+        OrderItemsEntity entity = orderItemsRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("OrderItem not found: " + id));
+
+        entity.setQuantity(dto.getQuantity());
+
+        if (dto.getOrderId() != null) {
+            OrdersEntity orderEntity = ordersRepository.findById(dto.getOrderId())
+                    .orElseThrow(() -> new RuntimeException("Order not found: " + dto.getOrderId()));
+            entity.setOrder(orderEntity);
+        }
+
+        if (dto.getItemId() != null) {
+            ItemsEntity itemEntity = itemsRepository.findById(dto.getItemId())
+                    .orElseThrow(() -> new RuntimeException("Item not found: " + dto.getItemId()));
+            entity.setItem(itemEntity);
+        }
+
+        if (dto.getQuantity() == null || dto.getQuantity() <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than zero");
+        }
+
+        orderItemsRepository.save(entity);
+        return orderItemMapper.toDto(entity);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        OrderItemsEntity entity = orderItemsRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("OrderItem not found: " + id));
+        entity.setDeleted(true);
+        orderItemsRepository.save(entity);
+    }
+}
