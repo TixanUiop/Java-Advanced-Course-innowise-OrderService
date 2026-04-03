@@ -155,7 +155,7 @@ class OrderItemsControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
-    // Helper method
+
     private OrderItemsEntity createTestOrderItem() {
         OrderItemsEntity orderItem = OrderItemsEntity.builder()
                 .order(testOrder)
