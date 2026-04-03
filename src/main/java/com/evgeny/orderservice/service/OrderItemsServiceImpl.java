@@ -5,10 +5,7 @@ import com.evgeny.orderservice.dto.orderItems.FullOrderItemDTO;
 import com.evgeny.orderservice.entity.ItemsEntity;
 import com.evgeny.orderservice.entity.OrderItemsEntity;
 import com.evgeny.orderservice.entity.OrdersEntity;
-import com.evgeny.orderservice.exception.InvalidOrderItemsException;
-import com.evgeny.orderservice.exception.OrderItemsNotFoundException;
-import com.evgeny.orderservice.exception.OrderNotFoundException;
-import com.evgeny.orderservice.exception.ProductNotFoundException;
+import com.evgeny.orderservice.exception.*;
 import com.evgeny.orderservice.mapper.orderItems.OrderItemMapper;
 import com.evgeny.orderservice.repository.ItemsRepository;
 import com.evgeny.orderservice.repository.OrderItemsRepository;
@@ -35,7 +32,7 @@ public class OrderItemsServiceImpl implements OrderItemsService {
     @Override
     public FullOrderItemDTO getById(Long id) {
         OrderItemsEntity entity = orderItemsRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("OrderItem not found: " + id));
+                .orElseThrow(() -> new OrderItemsNotFoundException("OrderItem not found: " + id));
 
         return orderItemMapper.toDto(entity);
     }
@@ -55,7 +52,7 @@ public class OrderItemsServiceImpl implements OrderItemsService {
         Long currentUserId = user.getId();
 
         if (!orderEntity.getUserId().equals(currentUserId)) {
-            throw new RuntimeException("You cannot add items to someone else's order");
+            throw new InvalidOrderOperationException("You cannot add items to someone else's order");
         }
 
         ItemsEntity itemEntity = itemsRepository.findById(dto.getItemId())
@@ -109,7 +106,7 @@ public class OrderItemsServiceImpl implements OrderItemsService {
         String role = user.getRole();
 
         if (!entity.getOrder().getUserId().equals(currentUserId) && !role.equals("ADMIN")) {
-            throw new RuntimeException("Access denied");
+            throw new AccessDeniedException("Access denied");
         }
 
         if (dto.getOrderId() != null) {
@@ -150,7 +147,7 @@ public class OrderItemsServiceImpl implements OrderItemsService {
         String role = user.getRole();
 
         if (!order.getUserId().equals(currentUserId) && !role.equals("ADMIN")) {
-            throw new RuntimeException("Access denied");
+            throw new InvalidOrderOperationException("Access denied");
         }
 
         if (!order.getUserId().equals(currentUserId)) {

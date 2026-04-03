@@ -6,6 +6,5 @@ spring:
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
     enabled: true
-    analytics-enabled: true
 server:
   port: 8082
