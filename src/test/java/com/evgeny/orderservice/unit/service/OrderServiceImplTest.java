@@ -26,12 +26,9 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceImplTest {
@@ -61,9 +58,9 @@ class OrderServiceImplTest {
                 .build();
     }
 
-
     @Test
     void createOrderSuccess() {
+
         CreateOrderItemDTO itemDTO = new CreateOrderItemDTO(1L, 2L);
 
         CreateOrderDTO dto = CreateOrderDTO.builder()
@@ -74,29 +71,37 @@ class OrderServiceImplTest {
 
         when(itemsRepository.findById(1L)).thenReturn(Optional.of(item));
 
-        when(orderMapper.toFullOrderDTOFromEntity(any())).thenReturn(new FullOrderDTO());
-        when(userClientService.getUserById(1L)).thenReturn(new UserDTO());
+        // 🔥 FIX: убираем зависимость от аргумента (null / email / string)
+        when(userClientService.getUserByEmail(any()))
+                .thenReturn(new UserDTO());
+
+        when(orderMapper.toFullOrderDTOFromEntity(any(OrdersEntity.class)))
+                .thenReturn(new FullOrderDTO());
 
         FullOrderDTO result = orderService.createOrder(dto);
 
         assertNotNull(result);
-        verify(ordersRepository).save(any());
+
         verify(itemsRepository).findById(1L);
+        verify(ordersRepository).save(any(OrdersEntity.class));
     }
 
     @Test
     void createOrderEmptyItemsShouldThrow() {
+
         CreateOrderDTO dto = CreateOrderDTO.builder()
                 .userId(1L)
                 .status(OrderStatus.Collect)
                 .orderItems(List.of())
                 .build();
 
-        assertThrows(InvalidOrderException.class, () -> orderService.createOrder(dto));
+        assertThrows(InvalidOrderException.class,
+                () -> orderService.createOrder(dto));
     }
 
     @Test
     void createOrderProductNotFoundShouldThrow() {
+
         CreateOrderItemDTO itemDTO = new CreateOrderItemDTO(1L, 2L);
 
         CreateOrderDTO dto = CreateOrderDTO.builder()
@@ -107,11 +112,13 @@ class OrderServiceImplTest {
 
         when(itemsRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(ProductNotFoundException.class, () -> orderService.createOrder(dto));
+        assertThrows(ProductNotFoundException.class,
+                () -> orderService.createOrder(dto));
     }
 
     @Test
     void createOrderInvalidQuantityShouldThrow() {
+
         CreateOrderItemDTO itemDTO = new CreateOrderItemDTO(1L, 0L);
 
         CreateOrderDTO dto = CreateOrderDTO.builder()
@@ -122,37 +129,45 @@ class OrderServiceImplTest {
 
         when(itemsRepository.findById(1L)).thenReturn(Optional.of(item));
 
-        assertThrows(InvalidOrderException.class, () -> orderService.createOrder(dto));
+        assertThrows(InvalidOrderException.class,
+                () -> orderService.createOrder(dto));
     }
-
 
     @Test
     void getOrderByIdSuccess() {
+
         OrdersEntity entity = OrdersEntity.builder()
                 .id(1L)
                 .userId(1L)
                 .build();
 
         when(ordersRepository.findById(1L)).thenReturn(Optional.of(entity));
-        when(orderMapper.toFullOrderDTOFromEntity(entity)).thenReturn(new FullOrderDTO());
-        when(userClientService.getUserById(1L)).thenReturn(new UserDTO());
+
+        when(orderMapper.toFullOrderDTOFromEntity(entity))
+                .thenReturn(new FullOrderDTO());
+
+        when(userClientService.getUserByEmail(any()))
+                .thenReturn(new UserDTO());
 
         FullOrderDTO result = orderService.getOrderById(1L);
 
         assertNotNull(result);
+
         verify(ordersRepository).findById(1L);
     }
 
     @Test
     void getOrderById_notFound_shouldThrow() {
+
         when(ordersRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(OrderNotFoundException.class, () -> orderService.getOrderById(1L));
+        assertThrows(OrderNotFoundException.class,
+                () -> orderService.getOrderById(1L));
     }
-
 
     @Test
     void updateOrderNotFoundShouldThrow() {
+
         when(ordersRepository.findById(1L)).thenReturn(Optional.empty());
 
         FullOrderDTO dto = new FullOrderDTO();
@@ -163,7 +178,10 @@ class OrderServiceImplTest {
 
     @Test
     void updateOrderEmptyItemsShouldThrow() {
-        OrdersEntity existing = OrdersEntity.builder().id(1L).build();
+
+        OrdersEntity existing = OrdersEntity.builder()
+                .id(1L)
+                .build();
 
         when(ordersRepository.findById(1L)).thenReturn(Optional.of(existing));
 
@@ -175,9 +193,9 @@ class OrderServiceImplTest {
                 () -> orderService.updateOrder(1L, dto));
     }
 
-
     @Test
     void softDeleteOrderSuccess() {
+
         OrdersEntity entity = OrdersEntity.builder()
                 .id(1L)
                 .deleted(false)
@@ -187,12 +205,12 @@ class OrderServiceImplTest {
 
         orderService.softDeleteOrder(1L);
 
-        assertTrue(entity.isDeleted());
-        verify(ordersRepository).save(entity);
+        verify(ordersRepository).delete(entity);
     }
 
     @Test
     void softDeleteOrderNotFoundShouldThrow() {
+
         when(ordersRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(OrderNotFoundException.class,

@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -53,15 +54,18 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     private String adminToken;
     private String userToken;
     private ItemsEntity testProduct;
 
     @BeforeEach
     void setUp() {
-        orderItemsRepository.deleteAll();
-        ordersRepository.deleteAll();
-        itemsRepository.deleteAll();
+        jdbcTemplate.execute("DELETE FROM order_items");
+        jdbcTemplate.execute("DELETE FROM orders");
+        jdbcTemplate.execute("DELETE FROM items");
 
         adminToken = jwtUtil.generateToken(1L, AuthRole.ADMIN);
         userToken = jwtUtil.generateToken(2L, AuthRole.USER);
@@ -84,6 +88,7 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
 
         CreateOrderDTO createOrderDTO = CreateOrderDTO.builder()
                 .userId(2L)
+                .userEmail("user@example.com")
                 .status(OrderStatus.Collect)
                 .deleted(false)
                 .orderItems(List.of(itemDto))
@@ -93,7 +98,7 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createOrderDTO)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())        // сервис возвращает 201 CREATED
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.userId").value(2L))
                 .andExpect(jsonPath("$.totalPrice").value(200))
@@ -109,6 +114,7 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
     void createOrderEmptyItems() throws Exception {
         CreateOrderDTO createOrderDTO = CreateOrderDTO.builder()
                 .userId(2L)
+                .userEmail("user@example.com")
                 .status(OrderStatus.Collect)
                 .deleted(false)
                 .orderItems(List.of())
@@ -131,6 +137,7 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
 
         CreateOrderDTO createOrderDTO = CreateOrderDTO.builder()
                 .userId(2L)
+                .userEmail("user@example.com")
                 .status(OrderStatus.Collect)
                 .deleted(false)
                 .orderItems(List.of(itemDto))
@@ -153,6 +160,7 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
 
         CreateOrderDTO createOrderDTO = CreateOrderDTO.builder()
                 .userId(2L)
+                .userEmail("user@example.com")
                 .status(OrderStatus.Collect)
                 .deleted(false)
                 .orderItems(List.of(itemDto))
@@ -168,7 +176,7 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("GET /api/orders/{id} - should return order by id for admin")
     void getOrderByIdAsAdmin() throws Exception {
-        OrdersEntity order = createTestOrder(1L, OrderStatus.Collect);
+        OrdersEntity order = createTestOrder(1L, "admin@example.com", OrderStatus.Collect);
 
         mockMvc.perform(get("/api/orders/" + order.getId())
                         .header("Authorization", "Bearer " + adminToken))
@@ -187,13 +195,12 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
-
     @Test
     @DisplayName("GET /api/orders/user/{userId} - should return orders by user id")
     void getOrdersByUserId() throws Exception {
-        createTestOrder(2L, OrderStatus.Collect);
-        createTestOrder(2L, OrderStatus.Accepted);
-        createTestOrder(1L, OrderStatus.Collect);
+        createTestOrder(2L, "user2@example.com", OrderStatus.Collect);
+        createTestOrder(2L, "user2@example.com", OrderStatus.Accepted);
+        createTestOrder(1L, "user1@example.com", OrderStatus.Collect);
 
         mockMvc.perform(get("/api/orders/user/2")
                         .header("Authorization", "Bearer " + userToken))
@@ -206,7 +213,7 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("PUT /api/orders/update/{id} - should update order successfully as admin")
     void updateOrderSuccess() throws Exception {
-        OrdersEntity order = createTestOrder(1L, OrderStatus.Collect);
+        OrdersEntity order = createTestOrder(1L, "admin@example.com", OrderStatus.Collect);
 
         OrderItemsDTO updatedItem = OrderItemsDTO.builder()
                 .id(order.getOrderItems().get(0).getId())
@@ -234,7 +241,7 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("PUT /api/orders/update/{id} - should fail when order items empty")
     void updateOrderEmptyItems() throws Exception {
-        OrdersEntity order = createTestOrder(1L, OrderStatus.Collect);
+        OrdersEntity order = createTestOrder(1L, "admin@example.com", OrderStatus.Collect);
 
         FullOrderDTO updateDTO = FullOrderDTO.builder()
                 .id(order.getId())
@@ -254,16 +261,20 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("DELETE /api/orders/delete/{id} - should soft delete order as admin")
     void softDeleteOrderSuccess() throws Exception {
-        OrdersEntity order = createTestOrder(1L, OrderStatus.Collect);
+        OrdersEntity order = createTestOrder(1L, "admin@example.com", OrderStatus.Collect);
 
         mockMvc.perform(delete("/api/orders/delete/" + order.getId())
                         .header("Authorization", "Bearer " + adminToken))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
-        OrdersEntity deletedOrder = ordersRepository.findById(order.getId()).orElse(null);
-        assertThat(deletedOrder).isNotNull();
-        assertThat(deletedOrder.isDeleted()).isTrue();
+        Boolean deleted = jdbcTemplate.queryForObject(
+                "SELECT deleted FROM orders WHERE id = ?",
+                Boolean.class,
+                order.getId()
+        );
+        assertThat(deleted).isTrue();
     }
+
 
     @Test
     @DisplayName("DELETE /api/orders/delete/{id} - should return 404 when order not found")
@@ -295,6 +306,7 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
 
         CreateOrderDTO createOrderDTO = CreateOrderDTO.builder()
                 .userId(2L)
+                .userEmail("user@example.com")
                 .status(OrderStatus.Collect)
                 .deleted(false)
                 .orderItems(List.of(item1, item2))
@@ -304,19 +316,18 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createOrderDTO)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.totalPrice").value(350))
                 .andExpect(jsonPath("$.orderItems.length()").value(2));
     }
 
 
-
-
-    private OrdersEntity createTestOrder(Long userId, OrderStatus status) {
+    private OrdersEntity createTestOrder(Long userId, String userEmail, OrderStatus status) {
         BigDecimal totalPrice = testProduct.getPrice().multiply(BigDecimal.valueOf(2L));
 
         OrdersEntity order = OrdersEntity.builder()
                 .userId(userId)
+                .userEmail(userEmail)
                 .status(status)
                 .deleted(false)
                 .totalPrice(totalPrice)

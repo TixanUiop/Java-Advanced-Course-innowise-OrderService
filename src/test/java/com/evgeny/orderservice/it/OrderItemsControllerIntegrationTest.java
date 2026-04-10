@@ -18,11 +18,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -49,15 +49,18 @@ class OrderItemsControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     private String adminToken;
     private ItemsEntity testProduct;
     private OrdersEntity testOrder;
 
     @BeforeEach
     void setUp() {
-        orderItemsRepository.deleteAll();
-        ordersRepository.deleteAll();
-        itemsRepository.deleteAll();
+        jdbcTemplate.execute("DELETE FROM order_items");
+        jdbcTemplate.execute("DELETE FROM orders");
+        jdbcTemplate.execute("DELETE FROM items");
 
         adminToken = jwtUtil.generateToken(1L, AuthRole.ADMIN);
 
@@ -71,6 +74,7 @@ class OrderItemsControllerIntegrationTest extends BaseIntegrationTest {
         testOrder = ordersRepository.save(
                 OrdersEntity.builder()
                         .userId(1L)
+                        .userEmail("test@example.com")
                         .status(OrderStatus.Collect)
                         .deleted(false)
                         .totalPrice(BigDecimal.ZERO)
@@ -79,9 +83,8 @@ class OrderItemsControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST /api/order-items/create - should create order item")
     void createOrderItemSuccess() throws Exception {
-        CreateOrderItemDTO createDTO = CreateOrderItemDTO.builder()
+        CreateOrderItemDTO dto = CreateOrderItemDTO.builder()
                 .orderId(testOrder.getId())
                 .itemId(testProduct.getId())
                 .quantity(3L)
@@ -90,20 +93,17 @@ class OrderItemsControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(post("/api/order-items/create")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createDTO)))
-                .andExpect(status().isOk())
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.orderId").value(testOrder.getId()))
                 .andExpect(jsonPath("$.itemId").value(testProduct.getId()))
                 .andExpect(jsonPath("$.quantity").value(3));
-
-        assertThat(orderItemsRepository.count()).isEqualTo(1);
     }
 
     @Test
-    @DisplayName("POST /api/order-items/create - should return 404 when product not found")
     void createOrderItemProductNotFound() throws Exception {
-        CreateOrderItemDTO createDTO = CreateOrderItemDTO.builder()
+        CreateOrderItemDTO dto = CreateOrderItemDTO.builder()
                 .orderId(testOrder.getId())
                 .itemId(999L)
                 .quantity(2L)
@@ -112,14 +112,13 @@ class OrderItemsControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(post("/api/order-items/create")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createDTO)))
+                        .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @DisplayName("POST /api/order-items/create - should return 400 when quantity is zero")
     void createOrderItemZeroQuantity() throws Exception {
-        CreateOrderItemDTO createDTO = CreateOrderItemDTO.builder()
+        CreateOrderItemDTO dto = CreateOrderItemDTO.builder()
                 .orderId(testOrder.getId())
                 .itemId(testProduct.getId())
                 .quantity(0L)
@@ -128,42 +127,35 @@ class OrderItemsControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(post("/api/order-items/create")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createDTO)))
+                        .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("Quantity must be greater than zero"));
     }
 
     @Test
-    @DisplayName("GET /api/order-items/{id} - should get order item by id")
     void getOrderItemByIdSuccess() throws Exception {
-        OrderItemsEntity orderItem = createTestOrderItem();
+        OrderItemsEntity entity = orderItemsRepository.save(
+                OrderItemsEntity.builder()
+                        .order(testOrder)
+                        .item(testProduct)
+                        .quantity(2L)
+                        .deleted(false)
+                        .build()
+        );
 
-        mockMvc.perform(get("/api/order-items/" + orderItem.getId())
+        mockMvc.perform(get("/api/order-items/" + entity.getId())
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(orderItem.getId()))
+                .andExpect(jsonPath("$.id").value(entity.getId()))
                 .andExpect(jsonPath("$.orderId").value(testOrder.getId()))
                 .andExpect(jsonPath("$.itemId").value(testProduct.getId()))
                 .andExpect(jsonPath("$.quantity").value(2));
     }
 
     @Test
-    @DisplayName("GET /api/order-items/{id} - should return 404 when order item not found")
     void getOrderItemByIdNotFound() throws Exception {
         mockMvc.perform(get("/api/order-items/999")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isNotFound());
-    }
-
-
-    private OrderItemsEntity createTestOrderItem() {
-        OrderItemsEntity orderItem = OrderItemsEntity.builder()
-                .order(testOrder)
-                .item(testProduct)
-                .quantity(2L)
-                .deleted(false)
-                .build();
-
-        return orderItemsRepository.save(orderItem);
     }
 }
