@@ -20,22 +20,14 @@ import java.util.List;
 @AllArgsConstructor
 public class UserDTO {
 
-    @Serial
-    private static final long serialVersionUID = 1L;
-
-    @NotNull
     private Long id;
 
-    @NotBlank
     private String name;
 
-    @NotBlank
     private String surname;
 
-    @Past
     private LocalDate birthDate;
 
-    @Email
     private String email;
 
     private Boolean active = true;

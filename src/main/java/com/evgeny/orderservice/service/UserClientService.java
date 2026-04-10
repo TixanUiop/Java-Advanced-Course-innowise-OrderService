@@ -14,24 +14,25 @@ public class UserClientService {
     private final WebClient webClient;
 
     @CircuitBreaker(name = "userServiceCircuitBreaker", fallbackMethod = "getUserFallback")
-    public UserDTO getUserById(Long userId) {
+    public UserDTO getUserByEmail(String email) {
 
         var auth = SecurityContextHolder.getContext().getAuthentication();
         String token = (String) auth.getCredentials();
+
         return webClient.get()
-                .uri("http://localhost:8080/api/v1/users/{id}", userId)
+                .uri("/api/v1/users/email/{email}", email)
                 .header("Authorization", "Bearer " + token)
                 .retrieve()
                 .bodyToMono(UserDTO.class)
                 .block();
     }
 
-    public UserDTO getUserFallback(Long userId, Throwable t) {
+    public UserDTO getUserFallback(String email, Throwable t) {
         return UserDTO.builder()
-                .id(userId)
+                .id(0L)
                 .name("Unknown")
                 .surname("Unknown")
-                .email("unknown@example.com")
+                .email(email)
                 .build();
     }
 

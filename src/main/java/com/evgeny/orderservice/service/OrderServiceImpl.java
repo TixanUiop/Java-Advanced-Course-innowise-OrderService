@@ -40,8 +40,6 @@ public class OrderServiceImpl implements OrderService {
     private final ItemsRepository itemsRepository;
     private final UserClientService userClientService;
 
-
-
     @Override
     @Transactional
     public FullOrderDTO createOrder(CreateOrderDTO dto) {
@@ -53,6 +51,7 @@ public class OrderServiceImpl implements OrderService {
 
         OrdersEntity orderEntity = OrdersEntity.builder()
                 .userId(dto.getUserId())
+                .userEmail(dto.getUserEmail())
                 .status(dto.getStatus())
                 .deleted(dto.isDeleted())
                 .build();
@@ -61,7 +60,7 @@ public class OrderServiceImpl implements OrderService {
                 .map(itemDto -> {
                     ItemsEntity product = itemsRepository
                             .findById(itemDto.getProductId())
-                            .orElseThrow(() ->new ProductNotFoundException(itemDto.getProductId()));
+                            .orElseThrow(() -> new ProductNotFoundException(itemDto.getProductId()));
 
                     if (itemDto.getQuantity() <= 0)
                         throw new InvalidOrderException("Quantity must be greater than zero: " + itemDto.getQuantity());
@@ -96,7 +95,6 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new OrderNotFoundException(id));
 
         return enrichWithUser(entity);
-
     }
 
     @Override
@@ -184,11 +182,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private FullOrderDTO enrichWithUser(OrdersEntity entity) {
-        FullOrderDTO dto = orderMapper.toFullOrderDTOFromEntity(entity);
 
-        UserDTO user = userClientService.getUserById(entity.getUserId());
+        FullOrderDTO dto = orderMapper.toFullOrderDTOFromEntity(entity);
+        UserDTO user = userClientService.getUserByEmail(entity.getUserEmail());
         dto.setUser(user);
 
         return dto;
     }
+
 }

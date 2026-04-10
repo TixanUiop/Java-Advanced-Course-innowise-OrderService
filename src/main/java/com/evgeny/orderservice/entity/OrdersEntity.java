@@ -23,6 +23,8 @@ public class OrdersEntity extends BaseEntity {
 
     private Long userId;
 
+    private String userEmail;
+
     @Column(name = "total_price")
     private BigDecimal totalPrice;
 
@@ -34,5 +36,8 @@ public class OrdersEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     List<OrderItemsEntity> orderItems;
+
+
+
 
 }

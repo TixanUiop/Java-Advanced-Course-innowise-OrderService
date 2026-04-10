@@ -1,5 +1,6 @@
 package com.evgeny.orderservice.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -8,13 +9,17 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class WebClientConfig {
 
     @Bean
-    public WebClient.Builder webClientBuilder() {
-        return WebClient.builder();
+    public WebClient webClient(WebClient.Builder builder,
+                               @Value("${user.service.url}") String userServiceUrl) {
+
+        return builder
+                .baseUrl(userServiceUrl)
+                .build();
     }
 
-    @Bean
-    public WebClient webClient(WebClient.Builder builder) {
-        return builder.build();
-    }
+//    @Bean
+//    public WebClient webClient(WebClient.Builder builder) {
+//        return builder.build();
+//    }
 
 }

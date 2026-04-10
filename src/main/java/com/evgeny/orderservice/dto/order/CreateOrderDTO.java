@@ -23,6 +23,9 @@ public class CreateOrderDTO {
     @Positive
     private Long userId;
 
+    @NotNull(message = "Email is required")
+    private String userEmail;
+
     private BigDecimal totalPrice;
 
     @NotNull(message = "Status is required")
