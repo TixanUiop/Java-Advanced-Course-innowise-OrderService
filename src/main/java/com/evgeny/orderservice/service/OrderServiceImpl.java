@@ -172,13 +172,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     public void softDeleteOrder(Long id) {
-
         OrdersEntity order = ordersRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException(id));
 
-        order.setDeleted(true);
-
-        ordersRepository.save(order);
+        ordersRepository.delete(order);
     }
 
     private FullOrderDTO enrichWithUser(OrdersEntity entity) {

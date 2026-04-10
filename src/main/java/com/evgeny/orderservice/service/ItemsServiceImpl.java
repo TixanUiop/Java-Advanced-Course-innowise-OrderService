@@ -9,6 +9,7 @@ import com.evgeny.orderservice.mapper.item.ItemMapper;
 import com.evgeny.orderservice.repository.ItemsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -62,6 +63,7 @@ public class ItemsServiceImpl implements ItemsService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         if (!itemsRepository.existsById(id)) {
             throw new ProductNotFoundException(id);

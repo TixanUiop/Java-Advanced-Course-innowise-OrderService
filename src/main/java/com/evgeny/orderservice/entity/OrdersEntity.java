@@ -3,6 +3,8 @@ package com.evgeny.orderservice.entity;
 import com.evgeny.orderservice.entity.Enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,6 +17,8 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Table(name = "orders")
+@SQLDelete(sql = "UPDATE orders SET deleted = true WHERE id = ?")
+@Where(clause = "deleted = false")
 public class OrdersEntity extends BaseEntity {
 
     @Id

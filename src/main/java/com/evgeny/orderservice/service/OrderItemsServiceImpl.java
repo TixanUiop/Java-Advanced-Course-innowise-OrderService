@@ -143,15 +143,13 @@ public class OrderItemsServiceImpl implements OrderItemsService {
                 .getPrincipal();
 
         Long currentUserId = user.getId();
-
         String role = user.getRole();
 
-        if (!order.getUserId().equals(currentUserId) && !role.equals("ADMIN")) {
-            throw new InvalidOrderOperationException("Access denied");
-        }
+        boolean isAdmin = role.equals("ADMIN");
+        boolean isOwner = order.getUserId().equals(currentUserId);
 
-        if (!order.getUserId().equals(currentUserId)) {
-            throw new RuntimeException("You cannot delete someone else's order");
+        if (!isAdmin && !isOwner) {
+            throw new InvalidOrderOperationException("Access denied");
         }
 
         entity.setDeleted(true);
