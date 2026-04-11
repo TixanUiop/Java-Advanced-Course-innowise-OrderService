@@ -41,7 +41,6 @@ public class OrderServiceImpl implements OrderService {
     private final UserClientService userClientService;
 
     @Override
-    @Transactional
     public FullOrderDTO createOrder(CreateOrderDTO dto) {
 
         if (dto.getOrderItems() == null || dto.getOrderItems().isEmpty()) {
