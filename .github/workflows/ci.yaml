@@ -31,9 +31,12 @@ jobs:
       DB_USERNAME: user
       DB_PASSWORD: password
       SPRING_PROFILES_ACTIVE: local
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # ВАЖНО для SonarQube!
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -41,8 +44,22 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Install PostgreSQL client and Redis CLI
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client redis-tools
+      - name: Cache SonarQube packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
 
       - name: Wait for Postgres health
         run: |
@@ -58,22 +75,18 @@ jobs:
           echo "Postgres failed to start within timeout"
           exit 1
 
-      - name: Run Integration Tests
+      - name: Run Tests
         run: mvn clean verify -Pdocker -B
 
-      - name: Code Analysis (SonarQube)
-        if: ${{ secrets.SONAR_TOKEN != '' }}
+      - name: SonarQube Scan
+        if: env.SONAR_TOKEN != ''
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mvn sonar:sonar \
             -Dsonar.projectKey=TixanUiop_Java-Advanced-Course-innowise-OrderService \
             -Dsonar.organization=tixanuiop \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} \
-            -Dsonar.pullrequest.branch=${{ github.head_ref }} \
-            -Dsonar.pullrequest.base=${{ github.base_ref }} \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             -Dsonar.coverage.exclusions=**/dto/**,**/entity/**,**/exception/**,**/config/**,**/security/**,**/specification/**
 

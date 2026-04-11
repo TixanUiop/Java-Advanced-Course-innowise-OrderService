@@ -16,7 +16,7 @@ public class WebClientConfig {
     public WebClient webClient(WebClient.Builder builder,
                                @Value("${user.service.url}") String userServiceUrl) {
 
-        log.info("🔴 WebClient создается с URL: {}", userServiceUrl);
+        log.info("🔴 WebClient is creating с URL: {}", userServiceUrl);
 
         return builder
                 .baseUrl(userServiceUrl)
@@ -26,7 +26,7 @@ public class WebClientConfig {
 
     private ExchangeFilterFunction logRequest() {
         return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
-            log.info("🔵 WebClient стучится на URL: {} {}", clientRequest.method(), clientRequest.url());
+            log.info("🔵 WebClient: {} {}", clientRequest.method(), clientRequest.url());
             return Mono.just(clientRequest);
         });
     }
