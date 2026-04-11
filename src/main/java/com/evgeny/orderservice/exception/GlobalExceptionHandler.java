@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -86,6 +87,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(WebClientResponseException.class)
+    public ResponseEntity<Map<String, String>> handleWebClientError(WebClientResponseException ex) {
+        Map<String, String> error = new HashMap<>();
+
+        error.put("error", "External service error");
+        error.put("status", String.valueOf(ex.getStatusCode().value()));
+        error.put("body", ex.getResponseBodyAsString());
+
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(error);
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handleAccessDenied(AccessDeniedException ex) {
         Map<String, String> error = new HashMap<>();
@@ -105,5 +117,12 @@ public class GlobalExceptionHandler {
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    @ExceptionHandler(InvalidOrExpiredToken.class)
+    public ResponseEntity<Map<String, String>> handleInvalidOrExpiredToken(InvalidOrExpiredToken ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Invalid or expired token");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 }
