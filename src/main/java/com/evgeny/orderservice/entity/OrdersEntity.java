@@ -36,7 +36,8 @@ public class OrdersEntity extends BaseEntity {
     @Column(name = "status")
     private OrderStatus status;
 
-    private boolean deleted;
+    @Column(nullable = false)
+    private boolean deleted = false;
 
     @OneToMany(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     List<OrderItemsEntity> orderItems;

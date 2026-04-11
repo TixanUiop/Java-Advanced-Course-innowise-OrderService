@@ -33,5 +33,5 @@ public class OrderItemsEntity extends BaseEntity {
     private Long quantity;
 
     @Column(nullable = false)
-    private Boolean deleted = false;
+    private boolean deleted = false;
 }

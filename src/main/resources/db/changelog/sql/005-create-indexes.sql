@@ -16,3 +16,6 @@ CREATE INDEX idx_order_items_order_id ON order_items(order_id);
 
 -- changeset evgeny:010
 CREATE INDEX idx_order_items_item_id ON order_items(item_id);
+
+-- changeset evgeny:011
+CREATE INDEX idx_orders_created_at ON orders(created_at);

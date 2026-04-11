@@ -1,4 +1,4 @@
--- changeset evgeny:11
+-- changeset evgeny:12
 INSERT INTO items (name, price, created_at, updated_at) VALUES
 ('Laptop', 1200.00, NOW(), NOW()),
 ('Smartphone', 800.00, NOW(), NOW()),
@@ -11,7 +11,7 @@ INSERT INTO items (name, price, created_at, updated_at) VALUES
 ('Webcam', 90.00, NOW(), NOW()),
 ('External HDD', 130.00, NOW(), NOW());
 
--- changeset evgeny:12
+-- changeset evgeny:13
 INSERT INTO orders (user_id, status, total_price, deleted, created_at, updated_at) VALUES
 (1, 'Awaiting', 1250.00, FALSE, NOW(), NOW()),
 (2, 'Accepted', 800.00, FALSE, NOW(), NOW()),
@@ -24,7 +24,7 @@ INSERT INTO orders (user_id, status, total_price, deleted, created_at, updated_a
 (9, 'Sent', 90.00, FALSE, NOW(), NOW()),
 (10, 'ReadyToReceive', 180.00, FALSE, NOW(), NOW());
 
--- changeset evgeny:13
+-- changeset evgeny:14
 INSERT INTO order_items (order_id, item_id, quantity, created_at, updated_at) VALUES
 (1, 1, 1, NOW(), NOW()),
 (1, 4, 1, NOW(), NOW()),

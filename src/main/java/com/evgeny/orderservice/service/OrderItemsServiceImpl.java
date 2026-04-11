@@ -150,7 +150,6 @@ public class OrderItemsServiceImpl implements OrderItemsService {
             throw new InvalidOrderOperationException("Access denied");
         }
 
-        entity.setDeleted(true);
-        orderItemsRepository.save(entity);
+        orderItemsRepository.delete(entity);
     }
 }
