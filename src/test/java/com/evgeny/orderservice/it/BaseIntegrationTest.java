@@ -1,54 +1,77 @@
 package com.evgeny.orderservice.it;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
-
-@Testcontainers
 @SpringBootTest
 public abstract class BaseIntegrationTest {
 
-    static final PostgreSQLContainer<?> postgres;
+    protected static WireMockServer wireMockServer;
 
+    static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
+            .withDatabaseName("testdb")
+            .withUsername("user")
+            .withPassword("password")
+            .withReuse(true);
 
-    protected WireMockServer wireMockServer;
+    @BeforeAll
+    static void init() {
+        if (!postgres.isRunning()) {
+            postgres.start();
+            System.out.println("🟢 PostgreSQL запущен на: " + postgres.getJdbcUrl());
+        }
 
-    @BeforeEach
-    void startWireMock() {
-        wireMockServer = new WireMockServer(wireMockConfig().dynamicPort());
-        wireMockServer.start();
+        if (wireMockServer == null || !wireMockServer.isRunning()) {
+            wireMockServer = new WireMockServer(wireMockConfig().dynamicPort());
+            wireMockServer.start();
 
-        System.setProperty("user.service.url",
-                "http://localhost:" + wireMockServer.port());
+            setupWireMockStubs();
+
+            System.out.println("🟢 WireMock запущен на: " + wireMockServer.baseUrl());
+        }
+
+        System.setProperty("user.service.url", wireMockServer.baseUrl());
     }
 
-    @AfterEach
-    void stopWireMock() {
-        wireMockServer.stop();
-    }
-
-    static {
-        postgres = new PostgreSQLContainer<>("postgres:15-alpine")
-                .withDatabaseName("testdb")
-                .withUsername("user")
-                .withPassword("password");
-
-        postgres.start();
+    private static void setupWireMockStubs() {
+        wireMockServer.stubFor(
+                get(urlMatching("/api/v1/users/.*"))
+                        .willReturn(aResponse()
+                                .withHeader("Content-Type", "application/json")
+                                .withBody("""
+                                    {
+                                        "id": 1,
+                                        "email": "mocked@example.com",
+                                        "name": "Mocked User"
+                                    }
+                                    """)));
     }
 
     @DynamicPropertySource
-    static void overrideProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.jpa.database-platform", () -> "org.hibernate.dialect.PostgreSQLDialect");
+    static void props(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", () -> postgres.getJdbcUrl());
+        registry.add("spring.datasource.username", () -> postgres.getUsername());
+        registry.add("spring.datasource.password", () -> postgres.getPassword());
+        registry.add("user.service.url", () -> wireMockServer.baseUrl());
+
+        registry.add("spring.datasource.hikari.maximum-pool-size", () -> "5");
+        registry.add("spring.datasource.hikari.max-lifetime", () -> "30000");
+        registry.add("spring.datasource.hikari.connection-timeout", () -> "5000");
+        registry.add("spring.datasource.hikari.validation-timeout", () -> "3000");
+    }
+
+    @AfterAll
+    static void cleanup() {
+        if (wireMockServer != null && wireMockServer.isRunning()) {
+            wireMockServer.stop();
+        }
     }
 }

@@ -237,8 +237,7 @@ class ItemsControllerIntegrationTest {
 
         orderItemsService.delete(1L);
 
-        assertEquals(true, existing.getDeleted());
-        verify(orderItemsRepository).save(existing);
+        verify(orderItemsRepository).delete(existing);
     }
 
     @Test

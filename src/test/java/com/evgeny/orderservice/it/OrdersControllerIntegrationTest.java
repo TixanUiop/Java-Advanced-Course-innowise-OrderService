@@ -30,6 +30,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -90,18 +91,17 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
 
     private void mockUserService(String email) {
         wireMockServer.stubFor(
-                com.github.tomakehurst.wiremock.client.WireMock.get(
-                                "/users/by-email/" + email)
+                com.github.tomakehurst.wiremock.client.WireMock.get("/api/v1/users/email/" + email)
                         .willReturn(
-                                com.github.tomakehurst.wiremock.client.WireMock.aResponse()
+                                aResponse()
                                         .withHeader("Content-Type", "application/json")
                                         .withBody("""
-                        {
-                          "id": 1,
-                          "email": "%s",
-                          "name": "Test User"
-                        }
-                    """.formatted(email))
+                    {
+                      "id": 1,
+                      "email": "%s",
+                      "name": "Test User"
+                    }
+                """.formatted(email))
                         )
         );
     }
@@ -149,6 +149,8 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.content[0].status").value("Accepted"));
     }
 
+
+
     @Test
     @DisplayName("POST /api/orders/create - should create order successfully")
     void createOrderSuccess() throws Exception {
@@ -168,7 +170,7 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
                         .header("Authorization", "Bearer " + userToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createOrderDTO)))
-                .andExpect(status().isCreated())        // сервис возвращает 201 CREATED
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.userId").value(2L))
                 .andExpect(jsonPath("$.totalPrice").value(200))

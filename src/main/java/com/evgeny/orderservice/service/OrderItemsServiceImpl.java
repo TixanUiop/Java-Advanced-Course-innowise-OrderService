@@ -82,7 +82,7 @@ public class OrderItemsServiceImpl implements OrderItemsService {
     @Override
     public List<FullOrderItemDTO> getAll() {
         return orderItemsRepository.findAll().stream()
-                .filter(e -> !e.getDeleted())
+                .filter(e -> !e.getOrder().isDeleted())
                 .map(orderItemMapper::toDto)
                 .toList();
     }

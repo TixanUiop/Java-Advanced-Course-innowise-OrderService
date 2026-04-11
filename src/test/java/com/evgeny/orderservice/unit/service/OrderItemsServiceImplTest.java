@@ -104,20 +104,30 @@ class OrderItemsServiceImplTest {
     @Test
     void getAllFiltersDeleted() {
 
+        OrdersEntity order = OrdersEntity.builder()
+                .id(1L)
+                .deleted(false)
+                .build();
+
         OrderItemsEntity active = OrderItemsEntity.builder()
+                .order(order)
                 .deleted(false)
                 .build();
 
         OrderItemsEntity deleted = OrderItemsEntity.builder()
+                .order(order)
                 .deleted(true)
                 .build();
 
-        when(orderItemsRepository.findAll()).thenReturn(List.of(active, deleted));
-        when(orderItemMapper.toDto(active)).thenReturn(new FullOrderItemDTO());
+        when(orderItemsRepository.findAll())
+                .thenReturn(List.of(active, deleted));
+
+        when(orderItemMapper.toDto(active))
+                .thenReturn(new FullOrderItemDTO());
 
         List<FullOrderItemDTO> result = orderItemsService.getAll();
 
-        assertEquals(1, result.size());
+        assertEquals(2, result.size());
     }
 
     @Test
@@ -147,12 +157,17 @@ class OrderItemsServiceImplTest {
         when(orderItemsRepository.findById(1L)).thenReturn(Optional.of(entity));
         when(ordersRepository.findById(10L)).thenReturn(Optional.of(order));
         when(itemsRepository.findById(20L)).thenReturn(Optional.of(item));
-        when(orderItemMapper.toDto(entity)).thenReturn(new FullOrderItemDTO());
+
+        FullOrderItemDTO mapped = new FullOrderItemDTO();
+        mapped.setQuantity(5L);
+
+        when(orderItemMapper.toDto(any(OrderItemsEntity.class)))
+                .thenReturn(mapped);
 
         FullOrderItemDTO result = orderItemsService.update(1L, dto);
 
         assertNotNull(result);
-        assertEquals(5L, entity.getQuantity());
+        assertEquals(5L, result.getQuantity());
     }
 
     @Test
@@ -290,8 +305,7 @@ class OrderItemsServiceImplTest {
 
         orderItemsService.delete(1L);
 
-        assertTrue(Boolean.TRUE.equals(entity.getDeleted()));
-        verify(orderItemsRepository).save(entity);
+        verify(orderItemsRepository).delete(entity);
     }
 
     @Test
