@@ -18,18 +18,23 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
+
 import java.math.BigDecimal;
 import java.util.List;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -57,9 +62,13 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+
     private String adminToken;
     private String userToken;
     private ItemsEntity testProduct;
+
+    @Value("${user.service.url}")
+    private String userServiceUrl;
 
     @BeforeEach
     void setUp() {
@@ -76,6 +85,68 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
                         .price(BigDecimal.valueOf(100))
                         .build()
         );
+    }
+
+
+    private void mockUserService(String email) {
+        wireMockServer.stubFor(
+                com.github.tomakehurst.wiremock.client.WireMock.get(
+                                "/users/by-email/" + email)
+                        .willReturn(
+                                com.github.tomakehurst.wiremock.client.WireMock.aResponse()
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBody("""
+                        {
+                          "id": 1,
+                          "email": "%s",
+                          "name": "Test User"
+                        }
+                    """.formatted(email))
+                        )
+        );
+    }
+
+
+    @Test
+    @DisplayName("GET /api/orders - should return paginated filtered orders with user enrichment")
+    void getOrdersFilteredWithPagination() throws Exception {
+
+        String email = "user@example.com";
+        mockUserService(email);
+
+        createTestOrder(2L, email, OrderStatus.Collect);
+        createTestOrder(2L, email, OrderStatus.Accepted);
+        createTestOrder(1L, "other@example.com", OrderStatus.Collect);
+
+        mockMvc.perform(get("/api/orders")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("statuses", "Collect")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").exists())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].status").value("Collect"));
+    }
+
+    @Test
+    @DisplayName("GET /api/orders - should filter by status and pagination")
+    void getOrdersFilterByStatus() throws Exception {
+
+        String email = "user@example.com";
+        mockUserService(email);
+
+        createTestOrder(2L, email, OrderStatus.Collect);
+        createTestOrder(2L, email, OrderStatus.Accepted);
+
+        mockMvc.perform(get("/api/orders")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("statuses", "Accepted")
+                        .param("page", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].status").value("Accepted"));
     }
 
     @Test
@@ -206,8 +277,8 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
                         .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].userId").value(2L))
-                .andExpect(jsonPath("$[1].userId").value(2L));
+                .andExpect(jsonPath("$[0].user.email").value("user2@example.com"))
+                .andExpect(jsonPath("$[1].user.email").value("user2@example.com"));
     }
 
     @Test
