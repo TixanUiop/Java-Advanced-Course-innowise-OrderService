@@ -3,8 +3,9 @@ package com.evgeny.orderservice.service;
 import com.evgeny.orderservice.dto.item.CreateItemsDTO;
 import com.evgeny.orderservice.dto.item.FullItemsDTO;
 import com.evgeny.orderservice.entity.ItemsEntity;
+import com.evgeny.orderservice.exception.InvalidProductException;
 import com.evgeny.orderservice.exception.ProductNotFoundException;
-import com.evgeny.orderservice.exception.invalidProductException;
+import com.evgeny.orderservice.exception.InvalidProductException;
 import com.evgeny.orderservice.mapper.item.ItemMapper;
 import com.evgeny.orderservice.repository.ItemsRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class ItemsServiceImpl implements ItemsService {
     public FullItemsDTO create(CreateItemsDTO create) {
 
         if (itemsRepository.existsByName(create.getName())) {
-            throw new invalidProductException("Item already exists: " + create.getName());
+            throw new InvalidProductException("Item already exists: " + create.getName());
         }
         ItemsEntity itemsEntityCreateItemsDTO = itemMapper.toItemsEntityCreateItemsDTO(create);
         ItemsEntity save = itemsRepository.save(itemsEntityCreateItemsDTO);

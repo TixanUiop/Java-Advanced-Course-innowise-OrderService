@@ -3,8 +3,9 @@ package com.evgeny.orderservice.unit.service;
 import com.evgeny.orderservice.dto.item.CreateItemsDTO;
 import com.evgeny.orderservice.dto.item.FullItemsDTO;
 import com.evgeny.orderservice.entity.ItemsEntity;
+import com.evgeny.orderservice.exception.InvalidProductException;
 import com.evgeny.orderservice.exception.ProductNotFoundException;
-import com.evgeny.orderservice.exception.invalidProductException;
+import com.evgeny.orderservice.exception.InvalidProductException;
 import com.evgeny.orderservice.mapper.item.ItemMapper;
 import com.evgeny.orderservice.repository.ItemsRepository;
 import com.evgeny.orderservice.service.ItemsServiceImpl;
@@ -85,7 +86,7 @@ class ItemsServiceImplTest {
 
         when(itemsRepository.existsByName("item")).thenReturn(true);
 
-        assertThrows(invalidProductException.class,
+        assertThrows(InvalidProductException.class,
                 () -> itemsService.create(create));
     }
 

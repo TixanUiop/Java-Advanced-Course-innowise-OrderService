@@ -113,8 +113,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
-    @ExceptionHandler(invalidProductException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidProductException(invalidProductException ex) {
+    @ExceptionHandler(InvalidProductException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidProductException(InvalidProductException ex) {
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
