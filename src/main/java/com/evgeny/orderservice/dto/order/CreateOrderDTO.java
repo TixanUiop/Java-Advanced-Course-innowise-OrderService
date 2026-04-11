@@ -26,12 +26,8 @@ public class CreateOrderDTO {
     @NotNull(message = "Email is required")
     private String userEmail;
 
-    private BigDecimal totalPrice;
-
     @NotNull(message = "Status is required")
     private OrderStatus status;
-
-    private boolean deleted;
 
     @NotEmpty(message = "Order must contain at least one item")
     private List<CreateOrderItemDTO> orderItems;

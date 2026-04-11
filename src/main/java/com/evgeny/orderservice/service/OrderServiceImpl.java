@@ -52,7 +52,6 @@ public class OrderServiceImpl implements OrderService {
                 .userId(dto.getUserId())
                 .userEmail(dto.getUserEmail())
                 .status(dto.getStatus())
-                .deleted(dto.isDeleted())
                 .build();
 
         List<OrderItemsEntity> items = dto.getOrderItems().stream()
