@@ -17,7 +17,14 @@ public class UserClientService {
     public UserDTO getUserByEmail(String email) {
 
         var auth = SecurityContextHolder.getContext().getAuthentication();
-        String token = (String) auth.getCredentials();
+
+        Object credentials = auth.getCredentials();
+
+        String token = null;
+
+        if (credentials instanceof String) {
+            token = (String) credentials;
+        }
 
         return webClient.get()
                 .uri("/api/v1/users/email/{email}", email)
