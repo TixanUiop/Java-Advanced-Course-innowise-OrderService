@@ -47,6 +47,7 @@ public class ItemsServiceImpl implements ItemsService {
         return all.stream().map(itemMapper::toFullItemsDTOFromItemsEntity).toList();
     }
 
+    @Transactional
     @Override
     public FullItemsDTO update(Long id, FullItemsDTO item) {
 
