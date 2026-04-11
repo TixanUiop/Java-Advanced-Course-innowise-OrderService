@@ -42,7 +42,6 @@ public class ItemsServiceImpl implements ItemsService {
 
     @Override
     public List<FullItemsDTO> getAll() {
-        //TODO add pageable
         List<ItemsEntity> all = itemsRepository.findAll();
         return all.stream().map(itemMapper::toFullItemsDTOFromItemsEntity).toList();
     }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import java.time.format.DateTimeParseException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +34,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         Map<String, String> error = new HashMap<>();
         error.put(ex.getName(), "Invalid value: " + ex.getValue() + ". " + ex.getMessage());
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(DateTimeParseException.class)
+    public ResponseEntity<Map<String, String>> handleDateTimeParse(DateTimeParseException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Invalid date format. Expected format: yyyy-MM-ddTHH:mm:ss");
         return ResponseEntity.badRequest().body(error);
     }
 

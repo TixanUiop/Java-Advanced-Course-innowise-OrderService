@@ -4,6 +4,7 @@ import com.evgeny.orderservice.dto.order.CreateOrderDTO;
 import com.evgeny.orderservice.dto.order.FullOrderDTO;
 import com.evgeny.orderservice.dto.order.OrdersSummaryDTO;
 import com.evgeny.orderservice.entity.Enums.OrderStatus;
+import com.evgeny.orderservice.exception.InvalidOrderException;
 import com.evgeny.orderservice.service.OrderService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -18,6 +19,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @RestController
@@ -59,10 +61,19 @@ public class OrdersController {
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size
     ) {
-        LocalDateTime fromDate = from != null ? LocalDateTime.parse(from) : null;
-        LocalDateTime toDate = to != null ? LocalDateTime.parse(to) : null;
 
-        Page<FullOrderDTO> result = ordersService.getOrdersFiltered(statuses, fromDate, toDate, page, size);
+        LocalDateTime fromDate;
+        LocalDateTime toDate;
+
+        try {
+            fromDate = (from != null) ? LocalDateTime.parse(from) : null;
+            toDate = (to != null) ? LocalDateTime.parse(to) : null;
+        } catch (DateTimeParseException ex) {
+            throw new InvalidOrderException("Invalid date format. Use ISO-8601: yyyy-MM-ddTHH:mm:ss");
+        }
+
+        Page<FullOrderDTO> result =
+                ordersService.getOrdersFiltered(statuses, fromDate, toDate, page, size);
 
         return ResponseEntity.ok(result);
     }
