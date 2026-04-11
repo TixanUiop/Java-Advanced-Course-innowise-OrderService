@@ -62,6 +62,7 @@ jobs:
         run: mvn clean verify -Pdocker -B
 
       - name: Code Analysis (SonarQube)
+        if: ${{ secrets.SONAR_TOKEN != '' }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
