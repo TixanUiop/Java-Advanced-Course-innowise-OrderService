@@ -77,5 +77,14 @@ jobs:
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
             -Dsonar.coverage.exclusions=**/dto/**,**/entity/**,**/exception/**,**/config/**,**/security/**,**/specification/**
 
-      - name: Build Docker Image
+      - name: Build Docker image
         run: docker build -t spring_app:latest .
+
+      - name: Save Docker image
+        run: docker save spring_app:latest -o spring_app.tar
+
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: spring_app.tar
