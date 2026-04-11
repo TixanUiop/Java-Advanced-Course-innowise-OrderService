@@ -52,7 +52,7 @@ public class OrdersController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public Page<FullOrderDTO> getOrdersFiltered(
+    public ResponseEntity<Page<FullOrderDTO>> getOrdersFiltered(
             @RequestParam(required = false) List<OrderStatus> statuses,
             @RequestParam(required = false) String from,
             @RequestParam(required = false) String to,
@@ -62,7 +62,9 @@ public class OrdersController {
         LocalDateTime fromDate = from != null ? LocalDateTime.parse(from) : null;
         LocalDateTime toDate = to != null ? LocalDateTime.parse(to) : null;
 
-        return ordersService.getOrdersFiltered(statuses, fromDate, toDate, page, size);
+        Page<FullOrderDTO> result = ordersService.getOrdersFiltered(statuses, fromDate, toDate, page, size);
+
+        return ResponseEntity.ok(result);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

@@ -1,5 +1,6 @@
 package com.evgeny.orderservice.dto.order;
 
+import com.evgeny.orderservice.dto.user.UserDTO;
 import com.evgeny.orderservice.entity.Enums.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +15,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class OrdersSummaryDTO {
     private Long id;
-    private Long userId;
+    private UserDTO user;
     private BigDecimal totalPrice;
     private OrderStatus status;
     private boolean deleted;

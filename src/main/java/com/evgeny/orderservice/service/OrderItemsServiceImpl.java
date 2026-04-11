@@ -79,8 +79,6 @@ public class OrderItemsServiceImpl implements OrderItemsService {
         return orderItemMapper.toDto(orderItem);
     }
 
-
-
     @Override
     public List<FullOrderItemDTO> getAll() {
         return orderItemsRepository.findAll().stream()

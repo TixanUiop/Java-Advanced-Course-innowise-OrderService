@@ -115,8 +115,14 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrdersSummaryDTO> getOrdersByUserId(Long userId) {
         List<OrdersEntity> byUserId = ordersRepository.findByUserId(userId);
+
         return byUserId.stream()
-                .map(orderMapper::toOrdersSummaryDTOFromEntity)
+                .map(order -> {
+                    OrdersSummaryDTO dto = orderMapper.toOrdersSummaryDTOFromEntity(order);
+                    UserDTO user = userClientService.getUserByEmail(order.getUserEmail());
+                    dto.setUser(user);
+                    return dto;
+                })
                 .toList();
     }
 

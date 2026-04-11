@@ -5,7 +5,9 @@ import com.evgeny.orderservice.dto.orderItems.FullOrderItemDTO;
 import com.evgeny.orderservice.entity.ItemsEntity;
 import com.evgeny.orderservice.entity.OrderItemsEntity;
 import com.evgeny.orderservice.entity.OrdersEntity;
+import com.evgeny.orderservice.exception.AccessDeniedException;
 import com.evgeny.orderservice.exception.InvalidOrderOperationException;
+import com.evgeny.orderservice.exception.OrderItemsNotFoundException;
 import com.evgeny.orderservice.exception.ProductNotFoundException;
 import com.evgeny.orderservice.mapper.orderItems.OrderItemMapper;
 import com.evgeny.orderservice.repository.ItemsRepository;
@@ -24,6 +26,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -69,6 +72,119 @@ class OrderItemsServiceImplTest {
     void tearDown() throws Exception {
         SecurityContextHolder.clearContext();
         closeable.close();
+    }
+
+
+    @Test
+    void getByIdSuccess() {
+
+        OrderItemsEntity entity = OrderItemsEntity.builder()
+                .id(1L)
+                .build();
+
+        FullOrderItemDTO dto = new FullOrderItemDTO();
+
+        when(orderItemsRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(orderItemMapper.toDto(entity)).thenReturn(dto);
+
+        FullOrderItemDTO result = orderItemsService.getById(1L);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    void getByIdNotFoundThrows() {
+
+        when(orderItemsRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(OrderItemsNotFoundException.class,
+                () -> orderItemsService.getById(1L));
+    }
+
+    @Test
+    void getAllFiltersDeleted() {
+
+        OrderItemsEntity active = OrderItemsEntity.builder()
+                .deleted(false)
+                .build();
+
+        OrderItemsEntity deleted = OrderItemsEntity.builder()
+                .deleted(true)
+                .build();
+
+        when(orderItemsRepository.findAll()).thenReturn(List.of(active, deleted));
+        when(orderItemMapper.toDto(active)).thenReturn(new FullOrderItemDTO());
+
+        List<FullOrderItemDTO> result = orderItemsService.getAll();
+
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void updateSuccess() {
+
+        OrdersEntity order = OrdersEntity.builder()
+                .id(10L)
+                .userId(1L)
+                .build();
+
+        ItemsEntity item = ItemsEntity.builder()
+                .id(20L)
+                .build();
+
+        OrderItemsEntity entity = OrderItemsEntity.builder()
+                .id(1L)
+                .order(order)
+                .item(item)
+                .quantity(1L)
+                .build();
+
+        FullOrderItemDTO dto = new FullOrderItemDTO();
+        dto.setQuantity(5L);
+        dto.setOrderId(10L);
+        dto.setItemId(20L);
+
+        when(orderItemsRepository.findById(1L)).thenReturn(Optional.of(entity));
+        when(ordersRepository.findById(10L)).thenReturn(Optional.of(order));
+        when(itemsRepository.findById(20L)).thenReturn(Optional.of(item));
+        when(orderItemMapper.toDto(entity)).thenReturn(new FullOrderItemDTO());
+
+        FullOrderItemDTO result = orderItemsService.update(1L, dto);
+
+        assertNotNull(result);
+        assertEquals(5L, entity.getQuantity());
+    }
+
+    @Test
+    void updateAccessDeniedThrows() {
+
+        JwtUserDetails user = mock(JwtUserDetails.class);
+        when(user.getId()).thenReturn(2L);
+        when(user.getRole()).thenReturn("USER");
+
+        Authentication auth = mock(Authentication.class);
+        when(auth.getPrincipal()).thenReturn(user);
+
+        SecurityContext context = mock(SecurityContext.class);
+        when(context.getAuthentication()).thenReturn(auth);
+
+        SecurityContextHolder.setContext(context);
+
+        OrdersEntity order = OrdersEntity.builder()
+                .userId(1L)
+                .build();
+
+        OrderItemsEntity entity = OrderItemsEntity.builder()
+                .order(order)
+                .build();
+
+        when(orderItemsRepository.findById(1L)).thenReturn(Optional.of(entity));
+
+        FullOrderItemDTO dto = new FullOrderItemDTO();
+        dto.setQuantity(5L);
+
+        assertThrows(AccessDeniedException.class,
+                () -> orderItemsService.update(1L, dto));
     }
 
     @Test
