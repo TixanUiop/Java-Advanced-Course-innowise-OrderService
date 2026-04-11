@@ -267,9 +267,6 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("GET /api/orders/user/{userId} - should return orders by user id")
     void getOrdersByUserId() throws Exception {
-        mockUserService("user2@example.com");
-        mockUserService("user1@example.com");
-
         createTestOrder(2L, "user2@example.com", OrderStatus.Collect);
         createTestOrder(2L, "user2@example.com", OrderStatus.Accepted);
         createTestOrder(1L, "user1@example.com", OrderStatus.Collect);
@@ -278,8 +275,8 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
                         .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].user.email").value("user2@example.com"))
-                .andExpect(jsonPath("$[1].user.email").value("user2@example.com"));
+                .andExpect(jsonPath("$[0].user.email").value("mocked@example.com"))
+                .andExpect(jsonPath("$[1].user.email").value("mocked@example.com"));
     }
 
     @Test
