@@ -161,7 +161,6 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
                 .userId(2L)
                 .userEmail("user@example.com")
                 .status(OrderStatus.Collect)
-                .deleted(false)
                 .orderItems(List.of(itemDto))
                 .build();
 
@@ -187,7 +186,6 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
                 .userId(2L)
                 .userEmail("user@example.com")
                 .status(OrderStatus.Collect)
-                .deleted(false)
                 .orderItems(List.of())
                 .build();
 
@@ -210,7 +208,6 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
                 .userId(2L)
                 .userEmail("user@example.com")
                 .status(OrderStatus.Collect)
-                .deleted(false)
                 .orderItems(List.of(itemDto))
                 .build();
 
@@ -233,7 +230,6 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
                 .userId(2L)
                 .userEmail("user@example.com")
                 .status(OrderStatus.Collect)
-                .deleted(false)
                 .orderItems(List.of(itemDto))
                 .build();
 
@@ -379,7 +375,6 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
                 .userId(2L)
                 .userEmail("user@example.com")
                 .status(OrderStatus.Collect)
-                .deleted(false)
                 .orderItems(List.of(item1, item2))
                 .build();
 
