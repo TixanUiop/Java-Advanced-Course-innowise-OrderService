@@ -267,6 +267,9 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("GET /api/orders/user/{userId} - should return orders by user id")
     void getOrdersByUserId() throws Exception {
+        mockUserService("user2@example.com");
+        mockUserService("user1@example.com");
+
         createTestOrder(2L, "user2@example.com", OrderStatus.Collect);
         createTestOrder(2L, "user2@example.com", OrderStatus.Accepted);
         createTestOrder(1L, "user1@example.com", OrderStatus.Collect);

@@ -26,7 +26,7 @@ public abstract class BaseIntegrationTest {
     static void init() {
         if (!postgres.isRunning()) {
             postgres.start();
-            System.out.println("🟢 PostgreSQL запущен на: " + postgres.getJdbcUrl());
+            System.out.println("🟢 PostgreSQL is starting on : " + postgres.getJdbcUrl());
         }
 
         if (wireMockServer == null || !wireMockServer.isRunning()) {
@@ -35,7 +35,7 @@ public abstract class BaseIntegrationTest {
 
             setupWireMockStubs();
 
-            System.out.println("🟢 WireMock запущен на: " + wireMockServer.baseUrl());
+            System.out.println("🟢 WireMock has started on: " + wireMockServer.baseUrl());
         }
 
         System.setProperty("user.service.url", wireMockServer.baseUrl());
