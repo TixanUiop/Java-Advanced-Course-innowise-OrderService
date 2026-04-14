@@ -76,7 +76,7 @@ jobs:
           exit 1
 
       - name: Run Tests
-        run: mvn clean verify -Pdocker -B
+        run: mvn clean verify -B
 
       - name: SonarQube Scan
         if: env.SONAR_TOKEN != ''
