@@ -41,8 +41,4 @@ public class OrdersEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     List<OrderItemsEntity> orderItems;
-
-
-
-
 }

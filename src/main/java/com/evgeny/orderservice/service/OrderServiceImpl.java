@@ -40,6 +40,7 @@ public class OrderServiceImpl implements OrderService {
     private final ItemsRepository itemsRepository;
     private final UserClientService userClientService;
 
+    @Transactional
     @Override
     public FullOrderDTO createOrder(CreateOrderDTO dto) {
 
