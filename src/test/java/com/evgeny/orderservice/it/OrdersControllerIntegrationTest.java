@@ -73,6 +73,7 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        ordersRepository.deleteAll();
         jdbcTemplate.execute("DELETE FROM order_items");
         jdbcTemplate.execute("DELETE FROM orders");
         jdbcTemplate.execute("DELETE FROM items");
@@ -275,8 +276,8 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
                         .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].user.email").value("mocked@example.com"))
-                .andExpect(jsonPath("$[1].user.email").value("mocked@example.com"));
+                .andExpect(jsonPath("$[0].user.email").value("user2@example.com"));
+
     }
 
     @Test

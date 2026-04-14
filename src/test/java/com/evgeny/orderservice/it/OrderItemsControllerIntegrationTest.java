@@ -58,6 +58,7 @@ class OrderItemsControllerIntegrationTest extends BaseIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        ordersRepository.deleteAll();
         jdbcTemplate.execute("DELETE FROM order_items");
         jdbcTemplate.execute("DELETE FROM orders");
         jdbcTemplate.execute("DELETE FROM items");
@@ -129,7 +130,7 @@ class OrderItemsControllerIntegrationTest extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Quantity must be greater than zero"));
+                .andExpect(jsonPath("$.quantity").value("must be greater than or equal to 1"));
     }
 
     @Test

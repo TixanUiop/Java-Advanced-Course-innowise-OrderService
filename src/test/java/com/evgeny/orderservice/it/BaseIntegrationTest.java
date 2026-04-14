@@ -24,6 +24,7 @@ public abstract class BaseIntegrationTest {
 
     @BeforeAll
     static void init() {
+
         if (!postgres.isRunning()) {
             postgres.start();
             System.out.println("🟢 PostgreSQL is starting on : " + postgres.getJdbcUrl());

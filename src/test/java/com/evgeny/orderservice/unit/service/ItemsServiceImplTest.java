@@ -137,16 +137,19 @@ class ItemsServiceImplTest {
 
     @Test
     void deleteShouldDelete() {
-        when(itemsRepository.existsById(1L)).thenReturn(true);
+        ItemsEntity entity = new ItemsEntity();
+        entity.setId(1L);
+
+        when(itemsRepository.findById(1L)).thenReturn(Optional.of(entity));
 
         itemsService.delete(1L);
 
-        verify(itemsRepository).deleteById(1L);
+        verify(itemsRepository).save(entity);
     }
 
     @Test
     void deleteShouldThrowIfNotFound() {
-        when(itemsRepository.existsById(1L)).thenReturn(false);
+        when(itemsRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(ProductNotFoundException.class,
                 () -> itemsService.delete(1L));
