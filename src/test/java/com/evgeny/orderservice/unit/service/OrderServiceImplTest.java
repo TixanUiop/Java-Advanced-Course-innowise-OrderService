@@ -71,7 +71,6 @@ class OrderServiceImplTest {
 
         when(itemsRepository.findById(1L)).thenReturn(Optional.of(item));
 
-        // 🔥 FIX: убираем зависимость от аргумента (null / email / string)
         when(userClientService.getUserByEmail(any()))
                 .thenReturn(new UserDTO());
 
