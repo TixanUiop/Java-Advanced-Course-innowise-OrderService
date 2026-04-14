@@ -2,6 +2,7 @@ package com.evgeny.orderservice.dto.order;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,10 +14,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CreateOrderItemDTO {
 
-    @NotNull(message = "ProductId is required")
+    @NotNull(message = "ProductId must not be null")
     private Long productId;
 
-    @NotNull(message = "Quantity is required")
-    @Min(value = 1, message = "Quantity must be greater than 0")
-    private Long quantity;
+    @NotNull(message = "Quantity must not be null")
+    @Positive(message = "Quantity must be greater than 0")
+    private Integer quantity;
 }

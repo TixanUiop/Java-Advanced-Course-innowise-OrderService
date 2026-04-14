@@ -2,6 +2,7 @@ package com.evgeny.orderservice.dto.order;
 
 import com.evgeny.orderservice.entity.Enums.OrderStatus;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -20,10 +21,11 @@ import java.util.List;
 public class CreateOrderDTO {
 
     @NotNull(message = "UserId is required")
-    @Positive
+    @Positive(message = "UserId must be positive")
     private Long userId;
 
     @NotNull(message = "Email is required")
+    @Email(message = "Email format is invalid")
     private String userEmail;
 
     @NotNull(message = "Status is required")
