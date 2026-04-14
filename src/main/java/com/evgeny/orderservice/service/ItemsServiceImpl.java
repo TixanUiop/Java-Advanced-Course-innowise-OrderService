@@ -37,6 +37,7 @@ public class ItemsServiceImpl implements ItemsService {
             throw new InvalidProductException("Item already exists: " + create.getName());
         }
         ItemsEntity itemsEntityCreateItemsDTO = itemMapper.toItemsEntityCreateItemsDTO(create);
+        itemsEntityCreateItemsDTO.setDeleted(false);
         ItemsEntity save = itemsRepository.save(itemsEntityCreateItemsDTO);
         return itemMapper.toFullItemsDTOFromItemsEntity(save);
     }
@@ -66,10 +67,12 @@ public class ItemsServiceImpl implements ItemsService {
     @Override
     @Transactional
     public void delete(Long id) {
-        if (!itemsRepository.existsById(id)) {
-            throw new ProductNotFoundException(id);
-        }
 
-        itemsRepository.deleteById(id);
+        ItemsEntity item = itemsRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
+
+        item.setDeleted(true);
+
+        itemsRepository.save(item);
     }
 }

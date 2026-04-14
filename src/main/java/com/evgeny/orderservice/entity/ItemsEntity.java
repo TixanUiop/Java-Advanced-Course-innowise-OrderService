@@ -2,6 +2,7 @@ package com.evgeny.orderservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
 
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 @Table(name = "items")
+@Where(clause = "deleted = false")
 public class ItemsEntity extends BaseEntity {
 
     @Id
@@ -22,4 +24,7 @@ public class ItemsEntity extends BaseEntity {
 
     private BigDecimal price;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean deleted = false;
 }

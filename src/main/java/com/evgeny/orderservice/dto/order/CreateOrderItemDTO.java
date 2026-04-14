@@ -19,5 +19,5 @@ public class CreateOrderItemDTO {
 
     @NotNull(message = "Quantity must not be null")
     @Positive(message = "Quantity must be greater than 0")
-    private Integer quantity;
+    private Long quantity;
 }

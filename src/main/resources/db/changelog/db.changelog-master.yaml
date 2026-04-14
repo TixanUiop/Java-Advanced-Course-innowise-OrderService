@@ -26,3 +26,9 @@ databaseChangeLog:
 
   - include:
       file: db/changelog/sql/009-update-table-add-column-emailupdated.sql
+
+  - include:
+      file: db/changelog/sql/010-update-table-add-column-soft-delete.sql
+
+  - include:
+      file: db/changelog/sql/011-update-table-add-fasle-for-null.sql
