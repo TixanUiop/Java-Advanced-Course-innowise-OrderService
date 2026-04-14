@@ -89,6 +89,10 @@ class OrdersControllerIntegrationTest extends BaseIntegrationTest {
         );
     }
 
+    @BeforeEach
+    void cleanWireMock() {
+        wireMockServer.resetAll();
+    }
 
     private void mockUserService(String email) {
         wireMockServer.stubFor(
