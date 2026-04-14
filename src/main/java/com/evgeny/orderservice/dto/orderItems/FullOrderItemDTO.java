@@ -16,13 +16,11 @@ public class FullOrderItemDTO {
 
     private Long id;
 
-    //private FullOrderDTO order;
     private Long orderId;
 
-    //private FullItemsDTO item;
     private Long itemId;
 
-    @Positive
+    @Positive(message = "Quantity must be greater than 0")
     private Long quantity;
 
     private BigDecimal price;

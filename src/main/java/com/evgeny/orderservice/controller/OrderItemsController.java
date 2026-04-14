@@ -3,6 +3,8 @@ package com.evgeny.orderservice.controller;
 import com.evgeny.orderservice.dto.orderItems.CreateOrderItemDTO;
 import com.evgeny.orderservice.dto.orderItems.FullOrderItemDTO;
 import com.evgeny.orderservice.service.OrderItemsService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,13 +25,13 @@ public class OrderItemsController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<FullOrderItemDTO> getById(@PathVariable Long id) {
+    public ResponseEntity<FullOrderItemDTO> getById(@Positive @PathVariable Long id) {
         return ResponseEntity.ok(orderItemsService.getById(id));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/create")
-    public ResponseEntity<FullOrderItemDTO> create(@RequestBody CreateOrderItemDTO dto) {
+    public ResponseEntity<FullOrderItemDTO> create(@Valid @RequestBody CreateOrderItemDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(orderItemsService.create(dto));
     }
@@ -42,8 +44,8 @@ public class OrderItemsController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<FullOrderItemDTO> update(@PathVariable Long id,
-                                                   @RequestBody FullOrderItemDTO dto) {
+    public ResponseEntity<FullOrderItemDTO> update(@Positive @PathVariable Long id,
+                                                   @Valid @RequestBody FullOrderItemDTO dto) {
         return ResponseEntity.ok(orderItemsService.update(id, dto));
     }
 

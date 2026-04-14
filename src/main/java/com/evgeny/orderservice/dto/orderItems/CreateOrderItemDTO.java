@@ -11,8 +11,12 @@ import lombok.*;
 @Builder
 public class CreateOrderItemDTO {
 
+    @NotNull
     private Long orderId;
-    private Long itemId;
-    private Long quantity;
 
+    @NotNull
+    private Long itemId;
+
+    @Min(1)
+    private Long quantity;
 }
