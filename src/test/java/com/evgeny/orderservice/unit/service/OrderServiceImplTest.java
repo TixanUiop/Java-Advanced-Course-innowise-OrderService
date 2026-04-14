@@ -3,6 +3,7 @@ package com.evgeny.orderservice.unit.service;
 import com.evgeny.orderservice.dto.order.CreateOrderDTO;
 import com.evgeny.orderservice.dto.order.CreateOrderItemDTO;
 import com.evgeny.orderservice.dto.order.FullOrderDTO;
+import com.evgeny.orderservice.dto.order.OrdersSummaryDTO;
 import com.evgeny.orderservice.dto.user.UserDTO;
 import com.evgeny.orderservice.entity.Enums.OrderStatus;
 import com.evgeny.orderservice.entity.ItemsEntity;
@@ -18,11 +19,19 @@ import com.evgeny.orderservice.service.UserClientService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.jpa.domain.Specification;
+import org.mockito.ArgumentMatchers;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -114,6 +123,8 @@ class OrderServiceImplTest {
         assertThrows(ProductNotFoundException.class,
                 () -> orderService.createOrder(dto));
     }
+
+
 
     @Test
     void createOrderInvalidQuantityShouldThrow() {
@@ -215,4 +226,91 @@ class OrderServiceImplTest {
         assertThrows(OrderNotFoundException.class,
                 () -> orderService.softDeleteOrder(1L));
     }
+
+    @Test
+    void getOrdersByUserIdShouldReturnOrdersWithUser() {
+
+        OrdersEntity order = new OrdersEntity();
+        order.setUserEmail("user@mail.com");
+
+        when(ordersRepository.findByUserId(1L))
+                .thenReturn(List.of(order));
+
+        OrdersSummaryDTO summary = new OrdersSummaryDTO();
+
+        when(orderMapper.toOrdersSummaryDTOFromEntity(order))
+                .thenReturn(summary);
+
+        UserDTO user = new UserDTO();
+        user.setEmail("user@mail.com");
+
+        when(userClientService.getUserByEmail("user@mail.com"))
+                .thenReturn(user);
+
+        List<OrdersSummaryDTO> result = orderService.getOrdersByUserId(1L);
+
+        assertEquals(1, result.size());
+        assertEquals(user, result.get(0).getUser());
+
+        verify(ordersRepository).findByUserId(1L);
+        verify(userClientService).getUserByEmail("user@mail.com");
+    }
+
+    @Test
+    void getOrdersFilteredShouldReturnPageOfOrders() {
+        OrdersEntity order = OrdersEntity.builder()
+                .id(1L)
+                .userId(1L)
+                .userEmail("test@mail.com")
+                .status(OrderStatus.Accepted)
+                .totalPrice(BigDecimal.valueOf(100))
+                .deleted(false)
+                .orderItems(List.of())
+                .build();
+
+        Page<OrdersEntity> page = new PageImpl<>(List.of(order));
+
+        when(ordersRepository.findAll(
+                ArgumentMatchers.<Specification<OrdersEntity>>any(),
+                ArgumentMatchers.<Pageable>any()
+        )).thenReturn(page);
+
+        FullOrderDTO dto = FullOrderDTO.builder()
+                .id(1L)
+                .userId(1L)
+                .status(OrderStatus.Accepted)
+                .totalPrice(BigDecimal.valueOf(100))
+                .deleted(false)
+                .orderItems(List.of())
+                .build();
+
+        when(orderMapper.toFullOrderDTOFromEntity(ArgumentMatchers.<OrdersEntity>any()))
+                .thenReturn(dto);
+
+        UserDTO user = new UserDTO();
+        user.setId(1L);
+        user.setEmail("test@mail.com");
+
+        when(userClientService.getUserByEmail(ArgumentMatchers.<String>any()))
+                .thenReturn(user);
+
+        Page<FullOrderDTO> result = orderService.getOrdersFiltered(
+                List.of(OrderStatus.Accepted),
+                LocalDateTime.now().minusDays(1),
+                LocalDateTime.now(),
+                0,
+                10
+        );
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals(user.getEmail(), result.getContent().get(0).getUser().getEmail());
+
+        verify(ordersRepository).findAll(
+                ArgumentMatchers.<Specification<OrdersEntity>>any(),
+                ArgumentMatchers.<Pageable>any()
+        );
+        verify(userClientService).getUserByEmail(ArgumentMatchers.<String>any());
+    }
+
 }
