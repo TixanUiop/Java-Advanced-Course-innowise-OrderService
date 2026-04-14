@@ -113,6 +113,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
+    @ExceptionHandler(com.evgeny.orderservice.exception.AccessDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleCustomAccessDenied(
+            com.evgeny.orderservice.exception.AccessDeniedException ex) {
+
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
     @ExceptionHandler(InvalidProductException.class)
     public ResponseEntity<Map<String, String>> handleInvalidProductException(InvalidProductException ex) {
         Map<String, String> error = new HashMap<>();
