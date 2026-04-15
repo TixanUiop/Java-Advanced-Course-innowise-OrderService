@@ -1,9 +1,13 @@
 spring:
   datasource:
-    #url: ${DB_URL:jdbc:postgresql://order_db:5432/orderdb}
-    url: ${DB_URL:jdbc:postgresql://localhost:5436/orderdb}
-    username: ${DB_USERNAME:order_user}
-    password: ${DB_PASSWORD:order_password}
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+#    url: ${SPRING_DATASOURCE_URL}
+#    #url: ${DB_URL:jdbc:postgresql://order_db:5432/orderdb}
+#    #url: ${DB_URL:jdbc:postgresql://localhost:5436/orderdb}
+#    username: ${DB_USERNAME:order_user}
+#    password: ${DB_PASSWORD:order_password}
     driver-class-name: org.postgresql.Driver
   jpa:
     show-sql: true
