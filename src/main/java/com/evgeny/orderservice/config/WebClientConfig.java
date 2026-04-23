@@ -20,7 +20,7 @@ public class WebClientConfig {
 
         return builder
                 .baseUrl(userServiceUrl)
-                .filter(logRequest()) // Логируем запросы
+                .filter(logRequest())
                 .build();
     }
 

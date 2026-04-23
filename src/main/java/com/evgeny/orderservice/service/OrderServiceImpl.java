@@ -9,13 +9,16 @@ import com.evgeny.orderservice.entity.ItemsEntity;
 import com.evgeny.orderservice.entity.OrderItemsEntity;
 import com.evgeny.orderservice.entity.OrdersEntity;
 import com.evgeny.orderservice.exception.InvalidOrderException;
+import com.evgeny.orderservice.exception.OrderItemsNotFoundException;
 import com.evgeny.orderservice.exception.OrderNotFoundException;
 import com.evgeny.orderservice.exception.ProductNotFoundException;
+import com.evgeny.orderservice.kafka.dto.PaymentEventDTO;
 import com.evgeny.orderservice.mapper.order.OrderMapper;
 import com.evgeny.orderservice.repository.ItemsRepository;
 import com.evgeny.orderservice.repository.OrdersRepository;
 import com.evgeny.orderservice.specification.OrderSpecifications;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,22 +26,48 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.evgeny.orderservice.entity.Enums.PaymentStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderServiceImpl implements OrderService {
 
     private final OrdersRepository ordersRepository;
     private final OrderMapper orderMapper;
     private final ItemsRepository itemsRepository;
     private final UserClientService userClientService;
+
+
+    public void handlePayment(PaymentEventDTO event) {
+
+        log.info("🔥handlePayment");
+
+        Optional<OrdersEntity> optionalOrder =
+                ordersRepository.findById(Long.parseLong(event.getOrderId()));
+
+        if (optionalOrder.isEmpty()) {
+            log.error("Order not found for id {}", event.getOrderId());
+            return;
+        }
+
+        OrdersEntity order = optionalOrder.get();
+
+        switch (PaymentStatus.valueOf(event.getStatus())) {
+            case SUCCESS -> order.setStatus(OrderStatus.Accepted);
+            case FAILED -> order.setStatus(OrderStatus.Cancelled);
+        }
+
+        ordersRepository.save(order);
+    }
 
     @Transactional
     @Override

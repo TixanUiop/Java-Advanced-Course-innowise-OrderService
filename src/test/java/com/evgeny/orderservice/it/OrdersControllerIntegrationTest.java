@@ -37,7 +37,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration"
+})
 @AutoConfigureMockMvc
 @DisplayName("IT OrdersController")
 class OrdersControllerIntegrationTest extends BaseIntegrationTest {

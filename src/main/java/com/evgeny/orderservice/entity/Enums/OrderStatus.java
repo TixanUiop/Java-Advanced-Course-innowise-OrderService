@@ -5,7 +5,8 @@ public enum OrderStatus {
     Accepted("Accepted"),
     Collect("Collect"),
     Sent("Sent"),
-    ReadyToReceive("ReadyToReceive");
+    ReadyToReceive("ReadyToReceive"),
+    Cancelled("Cancelled");
 
     private final String dbValue;
 

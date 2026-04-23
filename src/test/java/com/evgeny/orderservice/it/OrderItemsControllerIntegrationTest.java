@@ -26,7 +26,9 @@ import java.math.BigDecimal;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration"
+})
 @AutoConfigureMockMvc
 @DisplayName("IT OrderItemsController")
 class OrderItemsControllerIntegrationTest extends BaseIntegrationTest {
