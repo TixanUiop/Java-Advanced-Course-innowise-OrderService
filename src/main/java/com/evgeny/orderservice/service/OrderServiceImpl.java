@@ -56,7 +56,7 @@ public class OrderServiceImpl implements OrderService {
 
         if (optionalOrder.isEmpty()) {
             log.error("Order not found for id {}", event.getOrderId());
-            return;
+            throw new OrderNotFoundException(event.getOrderId());
         }
 
         OrdersEntity order = optionalOrder.get();
