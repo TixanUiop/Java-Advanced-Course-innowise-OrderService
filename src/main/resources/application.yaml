@@ -2,7 +2,7 @@ spring:
   application:
     name: Order-Service
   profiles:
-    active: local
+    active: docker
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
     enabled: true

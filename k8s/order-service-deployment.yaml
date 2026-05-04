@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: order-service:latest
+          imagePullPolicy: Never
+
+          ports:
+            - containerPort: 8082
+
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://order-db:5432/orderdb
+            - name: SPRING_DATASOURCE_USERNAME
+              value: postgres
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: postgres
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: kafka-service:9092
+            - name: JWT_SECRET
+              value: com-innowise-authentication-service-secret-key
+
+          startupProbe:
+            tcpSocket:
+              port: 8082
+            failureThreshold: 30
+            periodSeconds: 5
+            timeoutSeconds: 5
+
+          readinessProbe:
+            tcpSocket:
+              port: 8082
+            initialDelaySeconds: 0
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          livenessProbe:
+            tcpSocket:
+              port: 8082
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
