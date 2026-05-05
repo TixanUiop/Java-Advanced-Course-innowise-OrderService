@@ -1,0 +1,34 @@
+databaseChangeLog:
+
+  - include:
+      file: db/changelog/sql/001-create-items-table.sql
+
+  - include:
+      file: db/changelog/sql/002-create-enums.sql
+
+  - include:
+      file: db/changelog/sql/003-create-orders-table.sql
+
+  - include:
+      file: db/changelog/sql/004-create-order_items-table.sql
+
+  - include:
+      file: db/changelog/sql/005-create-indexes.sql
+
+  - include:
+      file: db/changelog/sql/006-insert-data-test.sql
+
+  - include:
+      file: db/changelog/sql/007-update-table-alter.sql
+
+  - include:
+      file: db/changelog/sql/008-update-table-add-column.sql
+
+  - include:
+      file: db/changelog/sql/009-update-table-add-column-emailupdated.sql
+
+  - include:
+      file: db/changelog/sql/010-update-table-add-column-soft-delete.sql
+
+  - include:
+      file: db/changelog/sql/011-update-table-add-fasle-for-null.sql

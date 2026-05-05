@@ -1,0 +1,25 @@
+package com.evgeny.orderservice.entity.Enums;
+
+public enum OrderStatus {
+    Awaiting("Awaiting"),
+    Accepted("Accepted"),
+    Collect("Collect"),
+    Sent("Sent"),
+    ReadyToReceive("ReadyToReceive"),
+    Cancelled("Cancelled");
+
+    private final String dbValue;
+
+    OrderStatus(String dbValue) {
+        this.dbValue = dbValue;
+    }
+
+    public String getDbValue() {
+        return dbValue;
+    }
+
+    @Override
+    public String toString() {
+        return dbValue;
+    }
+}
